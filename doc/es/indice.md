@@ -11,3 +11,5 @@ Empieza según lo que necesites:
 - [Crear contenido](guia-crear-elementos.md)
 - [Abrir la app](guia-rapida.md)
 - [Roles](roles.md)
+
+- [Minijuegos: recorrido, reglas y apoyos](minijuegos.md).

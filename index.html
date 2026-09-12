@@ -10,7 +10,7 @@
          Do NOT edit the block between build:head:start and build:head:end
          by hand -- it will be overwritten. Edit the config and re-run. -->
     <title>Enroca — Ajedrez, paso a paso</title>
-    <meta name="description" content="Aprende ajedrez con 14 lecciones cortas, 28 ejercicios y partidas con ayuda. Sin reloj, sin cuentas y a tu ritmo.">
+    <meta name="description" content="Ajedrez con tableros, piezas, retos y partidas.">
     <meta name="keywords" content="enroca, apptonomia, ajedrez, aprender ajedrez, lectura fácil, chess">
     <meta name="author" content="Apptonomia">
     <meta name="robots" content="index,follow,max-image-preview:large">
@@ -24,9 +24,9 @@
          app.config.json > dc*. Edit the config and re-run; do not
          hand-edit -- the next build will overwrite them. -->
     <meta name="DC.creator" content="Enroca">
-    <meta name="DC.subject" content="Aprender ajedrez con lecciones cortas, práctica y juego.">
+    <meta name="DC.subject" content="Tableros, piezas, retos y partidas de ajedrez.">
     <meta name="DC.type" content="InteractiveResource">
-    <meta name="DC.description" content="Aprende ajedrez con 14 lecciones cortas, 28 ejercicios y partidas con ayuda. Sin reloj, sin cuentas y a tu ritmo.">
+    <meta name="DC.description" content="Ajedrez con tableros, piezas, retos y partidas.">
     <meta name="DC.rights" content="MIT — ver LICENSE.">
     <meta name="DC.language" content="es">
     <meta name="DC.language" content="en">
@@ -45,7 +45,7 @@
     <meta property="og:locale" content="es_ES">
     <meta property="og:locale:alternate" content="en_US">
     <meta property="og:title" content="Enroca — Ajedrez, paso a paso">
-    <meta property="og:description" content="Conoce las piezas. Practica lo aprendido. Juega a tu ritmo.">
+    <meta property="og:description" content="Conoce el tablero. Encuentra caminos. Protege al rey.">
     <meta property="og:url" content="https://enroca.apptonomia.uk/">
     <meta property="og:image" content="https://enroca.apptonomia.uk/assets/img/icon-512.png">
     <meta property="og:image:width" content="512">
@@ -55,7 +55,7 @@
     <!-- ===== Twitter Card ===== -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Enroca — Ajedrez, paso a paso">
-    <meta name="twitter:description" content="Ajedrez, paso a paso: lecciones, ejercicios y partidas con ayuda.">
+    <meta name="twitter:description" content="Ajedrez con tableros, piezas, retos y partidas.">
     <meta name="twitter:image" content="https://enroca.apptonomia.uk/assets/img/icon-512.png">
 
     <!-- ===== Theme / appearance ===== -->
@@ -63,6 +63,7 @@
     <meta name="color-scheme" content="light">
 
   <!-- build:head:end -->
+
   <script type="application/ld+json">
   {
   "@context": "https://schema.org",
@@ -83,7 +84,7 @@
         "price": "0",
         "priceCurrency": "EUR"
       },
-      "description": "Aprende ajedrez con lecciones cortas, ejercicios y partidas con ayuda."
+      "description": "Ajedrez con tableros, piezas, retos y partidas."
     },
     {
       "@type": "FAQPage",
@@ -93,7 +94,7 @@
           "name": "¿Qué es Enroca?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Una app de Apptonomia para aprender ajedrez con lecciones, ejercicios y partidas con ayuda."
+            "text": "Una app de Apptonomia con tableros, piezas, retos y partidas de ajedrez."
           }
         },
         {
@@ -111,6 +112,14 @@
             "@type": "Answer",
             "text": "Solo en este navegador. Puedes borrarlo desde Ajustes."
           }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo son los minijuegos?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Hay 12 retos con metas visuales: llegar a banderas, buscar caminos y proteger al rey. Empiezas con tableros pequeños. Puedes pedir pistas, deshacer y repetir sin reloj."
+          }
         }
       ]
     }
@@ -125,6 +134,7 @@
   <script src="strings.en.js" defer></script>
   <script src="data.js" defer></script>
   <script src="chess.js" defer></script>
+  <script src="minigames.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -135,9 +145,9 @@
       <span>enroca<span class="brand-suite">APPTONOMIA</span></span>
     </a>
     <nav class="top-nav" aria-label="Enroca">
-      <a href="#learn" data-nav="learn"><span class="nav-number" aria-hidden="true">1</span><span data-i18n="nav.learn">Aprende</span></a>
-      <a href="#practice" data-nav="practice"><span class="nav-number" aria-hidden="true">2</span><span data-i18n="nav.practice">Practica</span></a>
-      <a href="#play" data-nav="play"><span class="nav-number" aria-hidden="true">3</span><span data-i18n="nav.play">Juega</span></a>
+      <a href="#home" data-nav="home"><span data-i18n="nav.home">Inicio</span></a>
+      <a href="#minigames" data-nav="practice"><span data-i18n="nav.practice">Retos</span></a>
+      <a href="#play" data-nav="play"><span data-i18n="nav.play">Partida</span></a>
     </nav>
     <a href="#settings" class="settings-link"><span aria-hidden="true">⚙</span><span data-i18n="nav.settings">Ajustes</span></a>
   </header>
@@ -145,7 +155,7 @@
   <div id="storage-notice" class="notice" hidden data-i18n="common.storageUnavailable"></div>
   <main id="main" tabindex="-1"></main>
   <footer class="site-footer">
-    <p data-i18n="footer.note">Una app de Apptonomia. Aprende a tu ritmo.</p>
+    <p data-i18n="footer.note">Una app de Apptonomia.</p>
     <div><a href="#privacy" data-i18n="privacy.link">Privacidad</a><a href="https://apptonomia.uk/" data-i18n="nav.suite">Más apps de Apptonomia</a></div>
   </footer>
   <div id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>

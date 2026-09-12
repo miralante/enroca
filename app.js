@@ -1,26 +1,28 @@
 (function () {
   'use strict';
-  const { i18n, storage, tts } = window.App;
-  const C = window.EnrocaChess, lessons = window.EnrocaLessons;
+  const { i18n, storage, sound } = window.App;
+  const C = window.EnrocaChess, lessons = window.EnrocaLessons, M = window.EnrocaMini;
   const main = document.getElementById('main'), dialog = document.getElementById('dialog');
   const t = (key, args) => i18n.t(key, args);
   const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const allExercises = lessons.flatMap(lesson => lesson.exercises.map(exercise => ({ ...exercise, lesson })));
-  const defaults = { lang: 'es', size: 'regular', contrast: false, names: false };
+  const defaults = { lang: 'es', size: 'regular', contrast: false, names: false, sounds: false };
   const storedSettings = storage.read('settings', {});
   let settings = { ...defaults };
   if (storedSettings && typeof storedSettings === 'object') {
-    settings = { lang: storedSettings.lang === 'en' ? 'en' : 'es', size: storedSettings.size === 'large' ? 'large' : 'regular', contrast: storedSettings.contrast === true, names: storedSettings.names === true };
+    settings = { lang: storedSettings.lang === 'en' ? 'en' : 'es', size: storedSettings.size === 'large' ? 'large' : 'regular', contrast: storedSettings.contrast === true, names: storedSettings.names === true, sounds: storedSettings.sounds === true };
   }
   const queryLang = new URLSearchParams(location.search).get('lang');
   if (['es', 'en'].includes(queryLang)) settings.lang = queryLang;
   else if (!storedSettings || !['es', 'en'].includes(storedSettings.lang)) settings.lang = (navigator.languages || [navigator.language]).some(l => l && l.startsWith('es')) ? 'es' : (navigator.language || '').startsWith('en') ? 'en' : 'es';
-  let progress = { lessons: [], exercises: {} };
+  let progress = { lessons: [], exercises: {}, minigames: {} };
   const savedProgress = storage.read('progress', null);
   if (savedProgress && typeof savedProgress === 'object') {
     progress.lessons = [...new Set((Array.isArray(savedProgress.lessons) ? savedProgress.lessons : []).filter(id => lessons.some(l => l.id === id)))];
     for (const q of allExercises) if (savedProgress.exercises && ['independent', 'supported'].includes(savedProgress.exercises[q.id])) progress.exercises[q.id] = savedProgress.exercises[q.id];
   }
+  for (const challenge of M.catalog) if (savedProgress?.minigames && ['independent', 'supported'].includes(savedProgress.minigames[challenge.id])) progress.minigames[challenge.id] = savedProgress.minigames[challenge.id];
+  let mini = null, miniReturn = null, listOpen = false;
   let game = restoreGame(storage.read('game', null));
   let selected = null, gameHint = null, gameMessage = '', aiTimer = null;
   let practice = null, practiceReturn = false, exampleMoved = false;
@@ -61,9 +63,10 @@
   function button(key, action, kind = '', args = '') { return `<button type="button" class="button ${kind}" data-action="${action}" ${args}>${esc(t(key))}</button>`; }
   function link(key, hash, kind = '') { return `<a class="button ${kind}" href="#${hash}">${esc(t(key))}</a>`; }
   function breadcrumb(hash = 'home', key = 'nav.home') { return `<a class="breadcrumb" href="#${hash}"><span aria-hidden="true">←</span> ${esc(t(key))}</a>`; }
-  function listen() { return `<button type="button" class="button secondary small" data-action="listen">${icon('sound')}<span>${esc(t('common.listen'))}</span></button>`; }
   function applySettings() {
     i18n.set(settings.lang);
+    sound.enabled = settings.sounds;
+    if (!settings.sounds) sound.stop();
     document.documentElement.classList.toggle('large-text', settings.size === 'large');
     document.documentElement.classList.toggle('high-contrast', settings.contrast);
     document.documentElement.classList.toggle('piece-names', settings.names);
@@ -74,10 +77,10 @@
   function route() { return location.hash.slice(1).split('/'); }
   function go(hash) { if (location.hash === '#' + hash) render(); else location.hash = hash; }
   function render(focus = true) {
-    clearTimeout(aiTimer); aiTimer = null; tts.stop();
+    clearTimeout(aiTimer); aiTimer = null;
     const [view, id, step] = route();
     document.querySelectorAll('[data-nav]').forEach(el => {
-      const current = el.dataset.nav === (view === 'lesson' ? 'learn' : ['exercise', 'practice-done'].includes(view) ? 'practice' : view === 'game' ? 'play' : view);
+      const current = el.dataset.nav === (['lesson', 'learn', ''].includes(view) ? 'home' : ['exercise', 'practice-done', 'minigames', 'minigame'].includes(view) ? 'practice' : view === 'game' ? 'play' : view);
       if (current) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
     });
     switch (view) {
@@ -86,6 +89,8 @@
       case 'practice': main.innerHTML = renderPractice(); break;
       case 'exercise': if (!practice) startPractice(id || 'all', false); main.innerHTML = renderExercise(); break;
       case 'practice-done': main.innerHTML = renderPracticeDone(); break;
+      case 'minigames': main.innerHTML = renderMinigames(); break;
+      case 'minigame': if (!mini || mini.state.id !== id) startMini(id); main.innerHTML = mini ? renderMini() : renderMinigames(); break;
       case 'play': main.innerHTML = renderPlay(); break;
       case 'game': main.innerHTML = game ? renderGame() : renderPlay(); scheduleAI(); break;
       case 'settings': main.innerHTML = renderSettings(); break;
@@ -95,23 +100,18 @@
     applySettings();
     if (focus) { main.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
   }
+  function boardIcon() {
+    return `<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="1" y="1" width="38" height="38" rx="2" fill="#fffaf0" stroke="#263e34" stroke-width="2"/>${Array.from({ length: 16 }, (_, i) => (Math.floor(i / 4) + i % 4) % 2 ? `<rect x="${2 + i % 4 * 9}" y="${2 + Math.floor(i / 4) * 9}" width="9" height="9" fill="#263e34"/>` : '').join('')}</svg>`;
+  }
+  function lessonCard(lesson) {
+    const complete = lesson.exercises.every(q => progress.exercises[q.id]);
+    return `<a class="lesson-card" href="#lesson/${lesson.id}/0"><span class="piece-icon">${lesson.id === 'board' ? boardIcon() : pieceSvg(lesson.piece.toUpperCase())}</span><div><h3>${esc(t('lesson.' + lesson.id + '.title'))}</h3></div><span class="lesson-arrow" aria-hidden="true">${complete ? '✓' : '→'}</span></a>`;
+  }
   function renderHome() {
-    const next = lessons.find(l => !progress.lessons.includes(l.id)) || lessons[0];
-    let tiles = '';
-    for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) tiles += `<rect x="${65 + c * 53}" y="${95 + r * 39}" width="53" height="39" rx="2" fill="${(r + c) % 2 ? '#9bb197' : '#f6f1e4'}"/>`;
-    return `<section class="hero"><div class="hero-copy"><p class="eyebrow">${esc(t('home.eyebrow'))}</p><h1>${esc(t('home.title'))}</h1><p class="hero-intro">${esc(t('home.intro'))}</p><a class="button" href="#lesson/${next.id}/0">${esc(t(progress.lessons.length ? 'home.resume' : 'home.cta'))}${icon('arrow')}</a><p class="hero-note">${icon('leaf')}${esc(t('home.note'))}</p></div><div class="hero-art" aria-hidden="true"><svg viewBox="0 0 400 350">${tiles}<g transform="translate(203 125) scale(1.8)">${pieceSvg('N').replace('<svg ', '<svg x="0" y="0" width="60" height="60" ')}</g><g transform="translate(100 84) scale(1.65)">${pieceSvg('R').replace('<svg ', '<svg x="0" y="0" width="60" height="60" ')}</g><circle cx="249" cy="270" r="10" fill="#365946"/><path d="m245 77 5-12m-18 9-9-7m39 12 12-4" stroke="#6e442a" stroke-width="3" stroke-linecap="round"/></svg><span class="art-label">${esc(t('app.tagline'))}</span></div></section>
-      <section><div class="section-heading"><h2>${esc(t('home.path'))}</h2><p>${esc(t('home.pathIntro'))}</p></div><div class="path-grid">${['learn', 'practice', 'play'].map((mode, i) => `<a class="path-card" href="#${mode}"><div class="card-top"><span class="number">0${i + 1}</span><span class="card-icon">${mode === 'play' ? pieceSvg('N') : icon(mode === 'learn' ? 'book' : 'check')}</span></div><h3>${esc(t('nav.' + mode))}</h3><p>${esc(t('home.' + mode))}</p><div class="card-bottom"><span>${esc(t('home.' + mode + 'Count'))}</span><span aria-hidden="true">↗</span></div></a>`).join('')}</div></section>
-      <div class="progress-note"><span aria-hidden="true">${progress.lessons.length ? '✓' : '↗'}</span><p>${esc(progress.lessons.length ? t('home.progress', { n: progress.lessons.length, total: lessons.length }) : t('home.start'))}</p><a href="#learn">${esc(t('learn.other'))}</a></div>`;
+    const groups = [['board', ['board', 'turns']], ['pieces', ['rook', 'bishop', 'queen', 'king', 'knight', 'pawn']], ['match', ['capture', 'check', 'castle', 'promotion', 'enpassant', 'draw']]];
+    return `<div class="page-intro home-intro"><h1>${esc(t('app.tagline'))}</h1></div>${groups.map(([group, ids]) => `<section class="topic-group"><h2>${esc(t('topics.' + group))}</h2><div class="lesson-list">${lessons.filter(l => ids.includes(l.id)).map(lessonCard).join('')}</div></section>`).join('')}${miniBanner()}`;
   }
-  function lessonCard(lesson, i, exerciseMode = false) {
-    const complete = progress.lessons.includes(lesson.id);
-    const count = lesson.exercises.filter(q => progress.exercises[q.id]).length;
-    const attrs = exerciseMode ? `href="#exercise/${lesson.id}" data-practice="${lesson.id}"` : `href="#lesson/${lesson.id}/0"`;
-    return `<a class="lesson-card" ${attrs}><span class="piece-icon">${pieceSvg(lesson.piece.toUpperCase())}</span><div><span class="lesson-number">${String(i + 1).padStart(2, '0')}</span><h2>${esc(t('lesson.' + lesson.id + '.title'))}</h2><p>${esc(t('lesson.' + lesson.id + '.intro'))}</p><span class="lesson-state">${esc(exerciseMode ? t('practice.summary', { n: count, total: lesson.exercises.length }) : complete ? '✓ ' + t('common.done') : t('common.pending'))}</span></div><span class="lesson-arrow" aria-hidden="true">→</span></a>`;
-  }
-  function renderLearn() {
-    return `${breadcrumb()}<div class="page-intro"><p class="eyebrow">01 · ${esc(t('nav.learn'))}</p><h1>${esc(t('learn.title'))}</h1><p>${esc(t('learn.intro'))}</p></div><div class="lesson-list">${lessons.map((l, i) => lessonCard(l, i)).join('')}</div>`;
-  }
+  function renderLearn() { return renderHome(); }
   function diagramBoard(lesson, moved = false) {
     const board = Array(64).fill(null);
     Object.entries(lesson.pos).forEach(([s, p]) => { board[C.index(s)] = p; });
@@ -124,37 +124,50 @@
     return board;
   }
   function renderBoard(board, options = {}) {
-    const { interactive = false, marks = [], chosen = null, last = [], label = 'play.board', focusAt = 56 } = options;
-    const cells = board.map((p, i) => {
-      const marked = marks.includes(i), square = C.square(i);
+    const { interactive = false, marks = [], chosen = null, last = [], label = 'play.board', focusAt = 56, size = 8, target = -1, king = -1, attacker = -1, movers = [], coordinates = false, hideCoordinates = false } = options;
+    const visible = M.squares(size), focusSquare = visible.includes(focusAt) ? focusAt : visible[0];
+    const cells = visible.map(i => {
+      const p = board[i], marked = marks.includes(i), square = C.square(i);
       let description = p ? t('play.square', { square, side: t('play.' + (C.color(p) === 'w' ? 'white' : 'black')), piece: t('piece.' + p.toLowerCase()) }) : t('play.empty', { square });
       if (chosen === i) description += ', ' + t('play.selectedLabel');
       if (marked) description += ', ' + t(p ? 'play.captureLabel' : 'play.destinationLabel');
-      const cls = `square ${(Math.floor(i / 8) + i % 8) % 2 ? 'dark' : ''} ${chosen === i ? 'selected' : ''} ${marked ? 'destination' : ''} ${marked && p ? 'capture' : ''} ${last.includes(i) ? 'last' : ''}`;
-      const content = `${p ? pieceSvg(p) : ''}<span class="coord" aria-hidden="true">${square}</span>${p ? `<span class="piece-name" aria-hidden="true">${esc(t('piece.' + p.toLowerCase()))}</span>` : ''}`;
-      return interactive ? `<button type="button" class="${cls}" role="gridcell" data-square="${i}" tabindex="${i === focusAt ? 0 : -1}" aria-label="${esc(description)}" aria-selected="${chosen === i}">${content}</button>` : `<span class="${cls}" aria-hidden="true">${content}</span>`;
+      if (target === i) description += ', ' + t('mini.flag');
+      if (king === i) description += ', ' + t('mini.kingLabel');
+      if (attacker === i) description += ', ' + t('mini.attackerLabel');
+      if (movers.includes(i)) description += ', ' + t('mini.movable');
+      const cls = `square ${(Math.floor(i / 8) + i % 8) % 2 ? 'dark' : ''} ${chosen === i ? 'selected' : ''} ${marked ? 'destination' : ''} ${marked && p ? 'capture' : ''} ${last.includes(i) ? 'last' : ''} ${target === i ? 'mini-target' : ''} ${king === i ? 'mini-king' : ''}`;
+      const badge = target === i ? '<span class="mini-badge" aria-hidden="true">⚑</span>' : king === i ? '<span class="mini-badge" aria-hidden="true">♔</span>' : attacker === i ? '<span class="mini-badge threat-badge" aria-hidden="true">!</span>' : '';
+      const content = `${p ? pieceSvg(p) : ''}${badge}<span class="coord" aria-hidden="true">${square}</span>${p ? `<span class="piece-name" aria-hidden="true">${esc(t('piece.' + p.toLowerCase()))}</span>` : ''}`;
+      return interactive ? `<button type="button" class="${cls}" role="gridcell" data-square="${i}" tabindex="${i === focusSquare ? 0 : -1}" aria-label="${esc(description)}" aria-selected="${chosen === i}">${content}</button>` : `<span class="${cls}" aria-hidden="true">${content}</span>`;
     });
     let body = cells.join('');
-    if (interactive) { body = ''; for (let row = 0; row < 8; row++) body += `<div class="board-row" role="row">${cells.slice(row * 8, row * 8 + 8).join('')}</div>`; }
+    if (interactive) { body = ''; for (let row = 0; row < size; row++) body += `<div class="board-row" role="row">${cells.slice(row * size, row * size + size).join('')}</div>`; }
     const description = interactive ? t(label) : t(label) + '. ' + board.map((p, i) => p ? t('play.square', { square: C.square(i), side: t('play.' + (C.color(p) === 'w' ? 'white' : 'black')), piece: t('piece.' + p.toLowerCase()) }) : '').filter(Boolean).join('. ') + (marks.length ? '. ' + t('play.destinationLabel') + ': ' + marks.map(C.square).join(', ') : '');
-    return `<div class="board-frame"><div class="board" role="${interactive ? 'grid' : 'img'}" aria-label="${esc(description)}">${body}</div>${interactive ? `<p class="board-keyboard">${esc(t('play.keyboard'))}</p>` : ''}</div>`;
+    return `<div class="board-frame"><div class="board board-size-${size} ${coordinates ? 'board-coordinates' : ''} ${hideCoordinates ? 'hide-coordinates' : ''}" data-board-size="${size}" role="${interactive ? 'grid' : 'img'}" aria-label="${esc(description)}">${body}</div>${interactive ? `<p class="board-keyboard sr-only">${esc(t('play.keyboard'))}</p>` : ''}</div>`;
   }
   function renderLesson(id, rawStep) {
     let lesson = lessons.find(l => l.id === id) || lessons[0];
-    const step = Math.max(0, Math.min(lesson.steps - 1, Number(rawStep) || 0));
+    const total = lesson.steps + lesson.exercises.length;
+    const step = Math.max(0, Math.min(total, Number(rawStep) || 0));
+    if (step === total) return renderTopicDone(lesson);
+    if (step >= lesson.steps) {
+      const at = step - lesson.steps;
+      if (!practice || practice.topicId !== lesson.id || practice.at !== at) {
+        startPractice(lesson.id, false); practice.at = at; practice.topicId = lesson.id;
+      }
+      return renderExercise();
+    }
     if (lesson.id === 'pawn' && step < 2) lesson = { ...lesson, marks: [step === 0 ? 'd3' : 'd4'], move: ['d2', step === 0 ? 'd3' : 'd4'] };
+    if (lesson.id === 'board') lesson = { ...lesson, focus: step === 1 ? 'a1' : null, marks: step === 1 ? ['a1'] : [] };
     const prefix = 'lesson.' + lesson.id;
-    return `${breadcrumb('learn', 'learn.other')}<div class="lesson-layout"><section class="lesson-text"><p class="eyebrow">${esc(t('learn.step', { n: step + 1, total: lesson.steps }))}</p><h1>${esc(t(prefix + '.title'))}</h1><div class="step-indicator" aria-hidden="true">${Array.from({ length: lesson.steps }, (_, i) => `<span class="${i <= step ? 'active' : ''}"></span>`).join('')}</div><p class="lesson-instruction" data-read>${esc(t(prefix + '.step.' + step))}</p>${listen()}<div class="actions">${step ? link('common.previous', `lesson/${lesson.id}/${step - 1}`, 'secondary') : ''}${step < lesson.steps - 1 ? link('common.next', `lesson/${lesson.id}/${step + 1}`) : button('learn.finish', 'finish-lesson', '', `data-lesson="${lesson.id}"`)}</div>${practiceReturn ? `<div class="actions">${button('practice.return', 'return-exercise', 'quiet')}</div>` : ''}</section><div class="board-example">${renderBoard(diagramBoard(lesson, exampleMoved), { marks: exampleMoved ? [] : (lesson.marks || []).map(C.index), chosen: C.index(exampleMoved && lesson.move ? lesson.move[1] : lesson.focus), label: 'learn.diagram' })}${lesson.move ? `<div class="actions">${button(exampleMoved ? 'learn.reset' : 'learn.example', 'example', 'secondary')}</div>` : ''}<p class="lesson-caption">${esc(t('learn.legend'))}</p></div></div>`;
+    return `${breadcrumb('home', 'nav.home')}<div class="topic-heading"><h1>${esc(t(prefix + '.title'))}</h1></div><div class="lesson-layout"><section class="lesson-text"><p class="lesson-instruction">${esc(t(prefix + '.step.' + step))}</p><div class="actions">${step ? link('common.previous', `lesson/${lesson.id}/${step - 1}`, 'secondary') : ''}${link('common.next', `lesson/${lesson.id}/${step + 1}`)}</div>${practiceReturn ? `<div class="actions">${button('practice.return', 'return-exercise', 'quiet')}</div>` : ''}${miniReturn === lesson.id && mini ? `<div class="actions">${link('mini.return', 'minigame/' + mini.state.id, 'secondary')}</div>` : ''}</section><div class="board-example">${renderBoard(diagramBoard(lesson, exampleMoved), { marks: exampleMoved ? [] : (lesson.marks || []).map(C.index), chosen: C.index(exampleMoved && lesson.move ? lesson.move[1] : lesson.focus), label: 'learn.diagram', coordinates: lesson.id === 'board', hideCoordinates: lesson.id === 'board' && step === 0 })}${lesson.move ? `<div class="actions">${button(exampleMoved ? 'learn.reset' : 'learn.example', 'example', 'secondary')}</div>` : ''}</div></div>`;
   }
-  function finishLesson(id) {
-    if (!progress.lessons.includes(id)) progress.lessons.push(id);
-    save('progress', progress);
-    main.innerHTML = `<section class="complete"><div class="complete-icon" aria-hidden="true">✓</div><h1>${esc(t('learn.finished'))}</h1><p>${esc(t('lesson.' + id + '.title'))}</p><div class="actions"><a href="#exercise/${id}" class="button" data-practice="${id}">${esc(t('learn.practice'))}</a>${link('learn.other', 'learn', 'secondary')}${practiceReturn ? button('practice.return', 'return-exercise', 'secondary') : ''}</div></section>`;
-    main.focus(); announce(t('learn.finished'));
+  function renderTopicDone(lesson) {
+    const next = lessons[lessons.indexOf(lesson) + 1];
+    return `${breadcrumb('home', 'nav.home')}<section class="complete"><div class="complete-icon" aria-hidden="true">✓</div><h1>${esc(t('lesson.' + lesson.id + '.title'))}</h1><div class="actions">${next ? `<a class="button" href="#lesson/${next.id}/0">${esc(t('lesson.' + next.id + '.title'))}${icon('arrow')}</a>` : link('nav.play', 'play')}${link('mini.open', 'minigames', 'secondary')}${link('common.again', 'lesson/' + lesson.id + '/0', 'quiet')}</div></section>`;
   }
-  function renderPractice() {
-    return `${breadcrumb()}<div class="page-intro"><p class="eyebrow">02 · ${esc(t('nav.practice'))}</p><h1>${esc(t('practice.title'))}</h1><p>${esc(t('practice.intro'))}</p><a class="button" href="#exercise/all" data-practice="all">${esc(t('practice.all'))}${icon('arrow')}</a></div><div class="section-heading"><h2>${esc(t('practice.review'))}</h2><p>${esc(t('practice.summary', { n: Object.keys(progress.exercises).length, total: allExercises.length }))}</p></div><div class="lesson-list">${lessons.map((l, i) => lessonCard(l, i, true)).join('')}</div>`;
-  }
+  function finishLesson(id) { go('lesson/' + id + '/' + (lessons.find(l => l.id === id)?.steps || 0)); }
+  function renderPractice() { return renderMinigames(); }
   function startPractice(id, navigate = true) {
     let questions = allExercises.filter(q => id === 'all' || q.lesson.id === id);
     if (!questions.length) { id = 'all'; questions = allExercises.slice(); }
@@ -169,13 +182,21 @@
     const answerList = Array.from({ length: q.options || 0 }, (_, i) => (i + offset) % q.options);
     let content;
     if (q.type === 'choice') content = `<div class="answer-list">${answerList.map((option, i) => `<button type="button" class="answer ${practice.solved && option === q.answer ? 'correct' : ''}" data-answer="${option}" ${practice.solved ? 'disabled' : ''}><span class="answer-index" aria-hidden="true">${practice.solved && option === q.answer ? '✓' : i + 1}</span>${esc(t(q.key + '.a.' + option))}</button>`).join('')}</div>`;
-    else {
+    else if (q.type === 'locate') {
+      content = renderBoard(diagramBoard(q.lesson), { interactive: true, marks: practice.hintVisible || practice.solved ? [C.index(q.to)] : [], chosen: practice.solved ? C.index(q.to) : null, coordinates: true, focusAt: C.index('a1') });
+      if (!practice.solved) content += `<details class="list-controls" ${listOpen ? 'open' : ''}><summary>${esc(t('play.list'))}</summary><label>${esc(t('practice.chooseSquare'))}<select data-list-to><option value="">${esc(t('play.choose'))}</option>${Array.from({ length: 64 }, (_, at) => `<option value="${at}">${C.square(at)}</option>`).join('')}</select></label>${button('common.choose', 'list-move', 'secondary', 'disabled')}</details>`;
+    } else {
       const board = diagramBoard(q.lesson);
       if (practice.solved) { board[C.index(q.to)] = board[C.index(q.from)]; board[C.index(q.from)] = null; }
       content = renderBoard(board, { interactive: true, chosen: practice.selected ? C.index(q.from) : null, marks: practice.hintVisible && !practice.solved ? [C.index(q.to)] : [], focusAt: practice.solved ? C.index(q.to) : C.index(q.from) });
       if (!practice.solved) content += listControls(board, [C.index(q.from)], Array.from({ length: 64 }, (_, i) => i).filter(i => i !== C.index(q.from)), false);
     }
-    return `${breadcrumb('practice', 'nav.practice')}<section class="practice-panel"><div class="question-top"><span>${esc(t('practice.number', { n: practice.at + 1, total: practice.questions.length }))}</span><span>${esc(t('lesson.' + q.lesson.id + '.title'))}</span></div><div class="question"><h1 data-read>${esc(t(q.key))}</h1>${listen()}${content}${practice.message ? `<div class="feedback ${practice.solved ? '' : 'hint'}"><span aria-hidden="true">${practice.solved ? '✓' : '↗'}</span> ${esc(practice.message)}</div>` : ''}${practice.hintVisible ? `<div class="feedback hint"><p>${esc(t(q.key + '.hint'))}</p></div>` : ''}<div class="actions">${practice.solved ? button('common.next', 'next-exercise') : button('practice.hint', 'exercise-hint', 'secondary')}${button('practice.lesson', 'review-lesson', 'quiet', `data-lesson="${q.lesson.id}"`)}</div></div></section>`;
+    const heading = t('lesson.' + q.lesson.id + '.title');
+    const controls = `<div class="actions">${practice.solved ? button('common.next', 'next-exercise') : button('practice.hint', 'exercise-hint', 'secondary')}${button('practice.lesson', 'review-lesson', 'quiet', `data-lesson="${q.lesson.id}"`)}</div>`;
+    const feedback = practice.message ? `<p class="feedback ${practice.solved ? '' : 'hint'}">${practice.solved ? '✓ ' : ''}${esc(practice.message)}</p>` : '';
+    const hint = practice.hintVisible && !practice.solved ? `<p class="feedback hint">${esc(t(q.key + '.hint'))}</p>` : '';
+    if (q.type === 'choice') return `${breadcrumb('home', 'nav.home')}<div class="topic-heading"><h1>${esc(heading)}</h1></div><div class="lesson-layout"><section class="lesson-text"><p class="lesson-instruction">${esc(t(q.key))}</p>${content}${feedback}${hint}${controls}</section><div class="board-example">${renderBoard(diagramBoard(q.lesson), { label: 'learn.diagram' })}</div></div>`;
+    return `${breadcrumb('home', 'nav.home')}<div class="topic-heading"><h1>${esc(heading)}</h1></div><div class="lesson-layout"><section class="lesson-text"><p class="lesson-instruction">${esc(t(q.key))}</p>${feedback}${hint}${controls}</section><div class="board-example">${content}</div></div>`;
   }
   function answer(correct) {
     if (practice.solved) return;
@@ -184,17 +205,71 @@
       const q = practice.questions[practice.at], supported = practice.hinted || practice.corrected;
       if (progress.exercises[q.id] !== 'independent') progress.exercises[q.id] = supported ? 'supported' : 'independent';
       save('progress', progress);
-      practice.message = t('practice.right') + ' ' + t(supported ? 'practice.supported' : 'practice.independent');
+      practice.message = t('practice.right');
     } else { practice.corrected = true; practice.message = t('practice.again'); }
     const activeOption = document.activeElement?.dataset.answer;
     const activeSquare = document.activeElement?.dataset.square;
     render(false); announce(practice.message);
+    if (correct) sound.play('success');
     if (correct) main.querySelector('[data-action="next-exercise"]').focus();
     else if (activeOption !== undefined) main.querySelector(`[data-answer="${activeOption}"]`)?.focus();
     else if (activeSquare !== undefined) main.querySelector(`[data-square="${activeSquare}"]`)?.focus();
   }
   function renderPracticeDone() {
-    return `<section class="complete"><div class="complete-icon" aria-hidden="true">✓</div><h1>${esc(t('practice.complete'))}</h1><p>${esc(t('practice.completeText'))}</p><div class="actions">${link('practice.toGame', 'play')}${button('practice.repeat', 'repeat-exercise', 'secondary')}${link('learn.other', 'learn', 'quiet')}</div></section>`;
+    return `<section class="complete"><div class="complete-icon" aria-hidden="true">✓</div><h1>${esc(t('practice.complete'))}</h1><div class="actions">${link('practice.toGame', 'play')}${button('practice.repeat', 'repeat-exercise', 'secondary')}${link('learn.other', 'learn', 'quiet')}</div></section>`;
+  }
+  function miniBanner() {
+    return `<section class="mini-banner"><span class="mini-banner-icon" aria-hidden="true">⚑</span><div><h2>${esc(t('mini.title'))}</h2></div>${link('mini.open', 'minigames')}</section>`;
+  }
+  function renderMinigames() {
+    return `${breadcrumb('home', 'nav.home')}<div class="page-intro"><h1>${esc(t('mini.title'))}</h1><p>${esc(t('mini.summary', { n: Object.keys(progress.minigames).length, total: M.catalog.length }))}</p></div>${['arrive', 'path', 'protect'].map((group, i) => `<section class="mini-group"><div class="section-heading"><h2>${esc(t('mini.group.' + group))}</h2></div><div class="lesson-list">${M.catalog.filter(c => c.group === group).map(c => `<a class="lesson-card" href="#minigame/${c.id}"><span class="piece-icon">${pieceSvg(c.piece)}</span><div><h3>${esc(t('mini.' + c.id + '.title'))}</h3><span class="lesson-state">${esc(progress.minigames[c.id] ? '✓ ' + t('mini.completed') : t('mini.boardSize', { n: c.size }))}</span></div><span class="lesson-arrow" aria-hidden="true">→</span></a>`).join('')}</div></section>`).join('')}${link('practice.toGame', 'play', 'secondary')}`;
+  }
+  function startMini(id, showMoves) {
+    const state = M.start(id);
+    if (!state) { mini = null; return; }
+    mini = { state, selected: null, history: [], hint: null, message: '', usedHelp: false, showMoves: showMoves ?? M.catalog.find(c => c.id === id).group === 'arrive' };
+    practiceReturn = false; miniReturn = null;
+  }
+  function miniInstruction() { return mini.state.movers.length > 1 ? t('mini.selectAny') : t('mini.select', { piece: t('piece.' + mini.state.board[mini.state.movers[0]].toLowerCase()) }); }
+  function renderMini(focusAt) {
+    const { state } = mini, challenge = M.catalog.find(c => c.id === state.id);
+    const safety = challenge.group === 'protect', target = C.index(challenge.targets[state.target]);
+    const destinations = mini.selected === null ? [] : M.moves(state, mini.selected).map(m => m.to);
+    const next = M.catalog[M.catalog.indexOf(challenge) + 1];
+    const marks = mini.hint ? [mini.hint.to] : mini.showMoves ? destinations : [];
+    const last = mini.history.at(-1), lastSquares = last ? state.board.map((p, i) => p !== last.board[i] ? i : -1).filter(i => i >= 0) : [];
+    const goal = safety ? t('mini.safeGoal') : t(state.board[target] ? 'mini.captureGoal' : 'mini.goal', { square: C.square(target) });
+    const hint = mini.hint ? t('play.hintText', { piece: t('piece.' + state.board[mini.hint.from].toLowerCase()), from: C.square(mini.hint.from), to: C.square(mini.hint.to) }) : '';
+    return `${breadcrumb('minigames', 'mini.back')}<div class="page-intro"><p class="eyebrow">${esc(t('mini.group.' + challenge.group))} · ${esc(t('mini.boardSize', { n: challenge.size }))}</p><h1>${esc(t('mini.' + state.id + '.title'))}</h1></div><div class="mini-layout"><section class="mini-board-panel">${renderBoard(state.board, { interactive: true, size: challenge.size, chosen: mini.selected, marks, target: state.done ? -1 : target, king: safety ? state.board.indexOf('K') : -1, attacker: safety && !state.done ? C.index(challenge.attacker) : -1, movers: state.movers, focusAt: focusAt ?? state.movers[0], label: 'mini.board', last: lastSquares })}<p class="board-legend">${esc(t(safety ? 'mini.safeLegend' : 'mini.flagLegend'))}</p>${!state.done ? listControls(state.board, state.movers.filter(at => M.moves(state, at).length), destinations, false) : ''}</section><section class="mini-help"><div class="mini-goal"><h2>${esc(state.done ? t('mini.success') : goal)}</h2>${state.done ? `` : `<p class="game-instruction">${esc((mini.selected === null ? miniInstruction() : t('mini.destination')))}</p>${challenge.targets.length > 1 ? `<p>${esc(t('mini.targetCount', { n: state.target + 1, total: challenge.targets.length }))}</p>` : ''}${mini.message ? `<p class="feedback hint">${esc(mini.message)}</p>` : ''}${hint ? `<p class="feedback hint">${esc(hint)}</p>` : ''}`}</div><div class="mini-tools">${state.done ? `<div class="actions">${next ? `<a class="button" data-mini-next href="#minigame/${next.id}">${esc(t('mini.next'))}</a>` : `<a class="button" data-mini-next href="#play">${esc(t('practice.toGame'))}</a>`}${link('mini.back', 'minigames', 'secondary')}</div>` : `<label class="mini-marks"><input type="checkbox" data-mini-marks ${mini.showMoves ? 'checked' : ''}>${esc(t('mini.showMoves'))}</label>${button('practice.hint', 'mini-hint', 'secondary')}${button('practice.lesson', 'mini-lesson', 'quiet')}`}${button('play.undo', 'mini-undo', 'secondary', mini.history.length ? '' : 'disabled')}${button('mini.restart', 'mini-restart', 'quiet')}<details><summary>${esc(t('mini.rules'))}</summary><p>${esc(t(safety ? 'mini.rules.protect' : 'mini.rules.move'))}</p></details></div></section></div>`;
+  }
+  function refreshMini(focusAt) {
+    main.innerHTML = renderMini(focusAt);
+    if (focusAt !== undefined) main.querySelector(`[data-square="${focusAt}"]`)?.focus({ preventScroll: true });
+  }
+  function miniSquare(at) {
+    if (!mini || mini.state.done) return;
+    const { state } = mini;
+    if (state.movers.includes(at)) {
+      mini.selected = mini.selected === at ? null : at; mini.hint = null; mini.message = '';
+      if (mini.showMoves && mini.selected !== null) mini.usedHelp = true;
+      refreshMini(at); announce((mini.selected === null ? miniInstruction() : t('mini.destination'))); return;
+    }
+    const next = mini.selected === null ? null : M.play(state, mini.selected, at);
+    if (!next) {
+      if (mini.selected !== null) mini.usedHelp = true;
+      mini.message = (mini.selected === null ? miniInstruction() : t('mini.again')); refreshMini(at); announce(mini.message); return;
+    }
+    mini.usedHelp ||= mini.showMoves;
+    mini.history.push(state); mini.state = next; mini.selected = null; mini.hint = null;
+    mini.message = t(next.target > state.target ? 'mini.nextFlag' : 'mini.moved', { square: C.square(at) });
+    if (next.done) {
+      if (progress.minigames[state.id] !== 'independent') progress.minigames[state.id] = mini.usedHelp ? 'supported' : 'independent';
+      save('progress', progress);
+    }
+    refreshMini(at);
+    if (next.done) main.querySelector('[data-mini-next]')?.focus();
+    sound.play(next.done || next.target > state.target ? 'success' : 'move');
+    announce(next.done ? t('mini.success') : mini.message);
   }
   function freshGame(mode, partner) {
     const state = C.fromFEN(mode === 'mini' ? C.MINI : C.START);
@@ -215,12 +290,12 @@
   }
   function saveGame() { save('game', { mode: game.mode, partner: game.partner, moves: game.moves.map(({ from, to, promotion }) => ({ from, to, ...(promotion ? { promotion } : {}) })), claimed: game.claimed }); }
   function renderPlay() {
-    return `${breadcrumb()}<div class="page-intro"><p class="eyebrow">03 · ${esc(t('nav.play'))}</p><h1>${esc(t('play.title'))}</h1><p>${esc(t('play.intro'))}</p>${game ? link('play.resume', 'game') : ''}</div><form id="game-setup"><fieldset><legend>${esc(t('play.boardType'))}</legend><div class="mode-grid">${['mini', 'full'].map(mode => `<label class="mode-choice"><input type="radio" name="mode" value="${mode}" ${mode === 'mini' ? 'checked' : ''}><span><strong>${esc(t('play.' + mode))}</strong><small>${esc(t('play.' + mode + 'Desc'))}</small></span></label>`).join('')}</div></fieldset><fieldset><legend>${esc(t('play.partner'))}</legend><div class="mode-grid">${['computer', 'local'].map(partner => `<label class="mode-choice"><input type="radio" name="partner" value="${partner}" ${partner === 'computer' ? 'checked' : ''}><span><strong>${esc(t('play.' + partner))}</strong><small>${esc(t('play.' + partner + 'Desc'))}</small></span></label>`).join('')}</div></fieldset><button class="button" type="submit">${esc(t('play.start'))}${icon('arrow')}</button><p class="hero-note">${esc(t('home.note'))}</p></form>`;
+    return `${breadcrumb()}<div class="page-intro"><h1>${esc(t('play.title'))}</h1>${game ? link('play.resume', 'game') : ''}</div><form id="game-setup"><fieldset><legend>${esc(t('play.boardType'))}</legend><div class="mode-grid">${['mini', 'full'].map(mode => `<label class="mode-choice"><input type="radio" name="mode" value="${mode}" ${mode === 'mini' ? 'checked' : ''}><span><strong>${esc(t('play.' + mode))}</strong><small>${esc(t('play.' + mode + 'Desc'))}</small></span></label>`).join('')}</div></fieldset><fieldset><legend>${esc(t('play.partner'))}</legend><div class="mode-grid">${['computer', 'local'].map(partner => `<label class="mode-choice"><input type="radio" name="partner" value="${partner}" ${partner === 'computer' ? 'checked' : ''}><span><strong>${esc(t('play.' + partner))}</strong><small>${esc(t('play.' + partner + 'Desc'))}</small></span></label>`).join('')}</div></fieldset><button class="button" type="submit">${esc(t('play.start'))}${icon('arrow')}</button></form>`;
   }
   function gameStatus() { return game.claimed ? { ended: true, reason: game.claimed } : C.status(game.states.at(-1), game.keys); }
   function listControls(board, froms, destinations, isGame) {
-    const from = isGame ? selected : practice.selected ? C.index(practice.questions[practice.at].from) : null;
-    return `<details class="list-controls" ${from !== null ? 'open' : ''}><summary>${esc(t('play.list'))}</summary><p>${esc(t('play.listHelp'))}</p><label>${esc(t('play.from'))}<select data-list-from><option value="">${esc(t('play.choose'))}</option>${froms.map(at => `<option value="${at}" ${from === at ? 'selected' : ''}>${esc(t('piece.' + board[at].toLowerCase()))} · ${C.square(at)}</option>`).join('')}</select></label><label>${esc(t('play.to'))}<select data-list-to ${from === null ? 'disabled' : ''}><option value="">${esc(t('play.choose'))}</option>${destinations.map(at => `<option value="${at}">${C.square(at)}${board[at] ? ' · ' + esc(t('play.captureLabel')) : ''}</option>`).join('')}</select></label>${button('play.move', 'list-move', 'secondary', 'disabled')}</details>`;
+    const from = route()[0] === 'minigame' ? mini.selected : isGame ? selected : practice.selected ? C.index(practice.questions[practice.at].from) : null;
+    return `<details class="list-controls" ${listOpen ? 'open' : ''}><summary>${esc(t('play.list'))}</summary><label>${esc(t('play.from'))}<select data-list-from><option value="">${esc(t('play.choose'))}</option>${froms.map(at => `<option value="${at}" ${from === at ? 'selected' : ''}>${esc(t('piece.' + board[at].toLowerCase()))} · ${C.square(at)}</option>`).join('')}</select></label><label>${esc(t('play.to'))}<select data-list-to ${from === null ? 'disabled' : ''}><option value="">${esc(t('play.choose'))}</option>${destinations.map(at => `<option value="${at}">${C.square(at)}${board[at] ? ' · ' + esc(t('play.captureLabel')) : ''}</option>`).join('')}</select></label>${button('play.move', 'list-move', 'secondary', 'disabled')}</details>`;
   }
   function moveText(move, before) {
     if (!move) return t('play.noLastMove');
@@ -240,8 +315,8 @@
     const destinations = selected === null || status.ended ? [] : [...new Set(C.legalMoves(state, selected).map(m => m.to))];
     const last = game.moves.at(-1), lastText = last ? moveText(last, game.states.at(-2)) : t('play.noLastMove');
     const title = thinking ? t('play.thinking') : t('play.' + (state.turn === 'w' ? 'whiteTurn' : 'blackTurn'));
-    const instruction = gameMessage || (selected === null ? t('play.select') : t('play.destination'));
-    return `${breadcrumb('play', 'nav.play')}<div class="game-top"><h1>${esc(t('play.' + game.mode))}</h1><span class="turn-tag">${esc(status.ended ? t('nav.play') : title)}</span></div><div class="play-layout"><section><div class="players"><span><i class="player-dot" aria-hidden="true"></i>${esc(t('play.white'))}${game.partner === 'computer' ? ' · ' + esc(t('play.you')) : ''}</span><span><i class="player-dot black" aria-hidden="true"></i>${esc(t('play.black'))}${game.partner === 'computer' ? ' · Enroca' : ''}</span></div>${renderBoard(state.board, { interactive: true, marks: destinations, chosen: selected, last: last ? [last.from, last.to] : [], focusAt })}<p class="board-legend">${esc(t('play.legend'))}</p>${!status.ended && !thinking ? listControls(state.board, [...new Set(C.legalMoves(state).map(m => m.from))], destinations, true) : ''}</section><aside class="game-help"><div data-read>${status.ended ? `<h2>${esc(statusText(status))}</h2><p>${esc(t('play.endNote'))}</p>` : `<h2>${esc(title)}</h2>${status.check ? `<div class="feedback hint">${esc(t('play.check'))}</div>` : ''}<p class="game-instruction">${esc(thinking ? t('home.note') : instruction)}</p>`}${gameHint && !status.ended ? `<div class="feedback hint">${esc(t('play.hintText', { piece: t('piece.' + state.board[gameHint.from].toLowerCase()), from: C.square(gameHint.from), to: C.square(gameHint.to) }))}</div>` : ''}</div>${listen()}${!status.ended ? button('play.hint', 'game-hint', 'secondary', thinking ? 'disabled' : '') : ''}${button('play.undo', 'undo', 'secondary', !game.moves.length ? 'disabled' : '')}${status.claim && !thinking ? `<p class="lesson-caption">${esc(t('play.claimAvailable'))}</p>${button('play.claim', 'claim', 'secondary')}` : ''}<div class="last-move"><h3>${esc(t('play.lastMove'))}</h3><p>${esc(lastText)}</p></div>${button('play.new', 'new-game', 'quiet')}<details><summary>${esc(t('play.history'))}</summary><ol class="move-log">${game.moves.map((move, i) => `<li>${esc(moveText(move, game.states[i]))}</li>`).join('')}</ol></details></aside></div>`;
+    const instruction = gameMessage || (selected === null ? t('play.select', { side: t('play.' + (state.turn === 'w' ? 'white' : 'black')).toLowerCase() }) : t('play.destination'));
+    return `${breadcrumb('play', 'nav.play')}<div class="game-top"><h1>${esc(t('play.' + game.mode))}</h1><span class="turn-tag">${esc(status.ended ? t('nav.play') : title)}</span></div><div class="play-layout"><section><div class="players"><span><i class="player-dot" aria-hidden="true"></i>${esc(t('play.white'))}${game.partner === 'computer' ? ' · ' + esc(t('play.you')) : ''}</span><span><i class="player-dot black" aria-hidden="true"></i>${esc(t('play.black'))}${game.partner === 'computer' ? ' · Enroca' : ''}</span></div>${renderBoard(state.board, { interactive: true, marks: destinations, chosen: selected, last: last ? [last.from, last.to] : [], focusAt })}<p class="board-legend">${esc(t('play.legend'))}</p>${!status.ended && !thinking ? listControls(state.board, [...new Set(C.legalMoves(state).map(m => m.from))], destinations, true) : ''}</section><aside class="game-help"><div>${status.ended ? `<h2>${esc(statusText(status))}</h2>` : `<h2>${esc(title)}</h2>${status.check ? `<div class="feedback hint">${esc(t('play.check'))}</div>` : ''}<p class="game-instruction">${esc(thinking ? t('play.thinking') : instruction)}</p>`}${gameHint && !status.ended ? `<div class="feedback hint">${esc(t('play.hintText', { piece: t('piece.' + state.board[gameHint.from].toLowerCase()), from: C.square(gameHint.from), to: C.square(gameHint.to) }))}</div>` : ''}</div>${!status.ended ? button('play.hint', 'game-hint', 'secondary', thinking ? 'disabled' : '') : ''}${button('play.undo', 'undo', 'secondary', !game.moves.length ? 'disabled' : '')}${status.claim && !thinking ? `<p class="lesson-caption">${esc(t('play.claimAvailable'))}</p>${button('play.claim', 'claim', 'secondary')}` : ''}<div class="last-move"><h3>${esc(t('play.lastMove'))}</h3><p>${esc(lastText)}</p></div>${button('play.new', 'new-game', 'quiet')}<details><summary>${esc(t('play.history'))}</summary><ol class="move-log">${game.moves.map((move, i) => `<li>${esc(moveText(move, game.states[i]))}</li>`).join('')}</ol></details></aside></div>`;
   }
   function updateGame(focusAt, takeFocus = false) {
     const focusedSquare = document.activeElement?.dataset.square;
@@ -256,6 +331,7 @@
     updateGame(result.move.to, human);
     const status = gameStatus();
     announce(moveText(result.move, before) + ' ' + (status.ended ? statusText(status) : status.check ? t('play.check') : t('play.' + (result.state.turn === 'w' ? 'whiteTurn' : 'blackTurn'))));
+    sound.play('move');
     scheduleAI();
   }
   function scheduleAI() {
@@ -280,20 +356,20 @@
       updateGame(at, true); announce(gameMessage); return;
     }
     const moves = selected === null ? [] : C.legalMoves(state, selected).filter(m => m.to === at);
-    if (!moves.length) { gameMessage = t(selected === null ? 'play.select' : 'play.invalid'); updateGame(at, true); announce(gameMessage); return; }
+    if (!moves.length) { gameMessage = selected === null ? t('play.select', { side: t('play.' + (state.turn === 'w' ? 'white' : 'black')).toLowerCase() }) : t('play.invalid'); updateGame(at, true); announce(gameMessage); return; }
     if (moves[0].promotion) {
       showDialog(`<h2 id="dialog-title">${esc(t('play.promotion'))}</h2><div class="promotion-grid">${moves.map(m => `<button type="button" data-promotion="${m.promotion}">${pieceSvg(state.turn === 'w' ? m.promotion.toUpperCase() : m.promotion)}${esc(t('piece.' + m.promotion))}</button>`).join('')}</div>${button('common.cancel', 'close-dialog', 'secondary')}`);
       dialog.querySelectorAll('[data-promotion]').forEach(el => el.addEventListener('click', () => { closeDialog(); commitMove(moves.find(m => m.promotion === el.dataset.promotion)); }));
     } else commitMove(moves[0]);
   }
   function renderSettings() {
-    return `${breadcrumb()}<section class="settings-panel"><div class="page-intro"><h1>${esc(t('settings.title'))}</h1><p>${esc(t('settings.intro'))}</p></div><label class="setting"><span>${esc(t('settings.language'))}</span><select data-setting="lang"><option value="es" ${settings.lang === 'es' ? 'selected' : ''}>Español</option><option value="en" ${settings.lang === 'en' ? 'selected' : ''}>English</option></select></label><label class="setting"><span>${esc(t('settings.text'))}</span><select data-setting="size"><option value="regular" ${settings.size === 'regular' ? 'selected' : ''}>${esc(t('settings.regular'))}</option><option value="large" ${settings.size === 'large' ? 'selected' : ''}>${esc(t('settings.large'))}</option></select></label><label class="setting"><span>${esc(t('settings.contrast'))}</span><input type="checkbox" data-setting="contrast" ${settings.contrast ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.pieceNames'))}</span><input type="checkbox" data-setting="names" ${settings.names ? 'checked' : ''}></label><div class="settings-data"><h2>${esc(t('settings.data'))}</h2><p>${esc(t('settings.dataText'))}</p><p>${esc(t('settings.privacy'))}</p><p>${esc(t('home.progress', { n: progress.lessons.length, total: lessons.length }))}</p><p>${esc(t('practice.summary', { n: Object.keys(progress.exercises).length, total: allExercises.length }))}</p>${button('settings.delete', 'delete-data', 'secondary')}</div></section>`;
+    return `${breadcrumb()}<section class="settings-panel"><div class="page-intro"><h1>${esc(t('settings.title'))}</h1></div><label class="setting"><span>${esc(t('settings.language'))}</span><select data-setting="lang"><option value="es" ${settings.lang === 'es' ? 'selected' : ''}>Español</option><option value="en" ${settings.lang === 'en' ? 'selected' : ''}>English</option></select></label><label class="setting"><span>${esc(t('settings.text'))}</span><select data-setting="size"><option value="regular" ${settings.size === 'regular' ? 'selected' : ''}>${esc(t('settings.regular'))}</option><option value="large" ${settings.size === 'large' ? 'selected' : ''}>${esc(t('settings.large'))}</option></select></label><label class="setting"><span>${esc(t('settings.contrast'))}</span><input type="checkbox" data-setting="contrast" ${settings.contrast ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.pieceNames'))}</span><input type="checkbox" data-setting="names" ${settings.names ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.sounds'))}</span><input type="checkbox" data-setting="sounds" ${settings.sounds ? 'checked' : ''}></label><div class="settings-data"><h2>${esc(t('settings.data'))}</h2>${button('settings.delete', 'delete-data', 'secondary')}</div></section>`;
   }
   function renderPrivacy() {
-    return `${breadcrumb()}<section class="settings-panel"><h1>${esc(t('privacy.title'))}</h1>${['intro', 'storage', 'tracking', 'voice', 'reset'].map(key => `<p>${esc(t('privacy.' + key))}</p>`).join('')}${link('nav.settings', 'settings')}</section>`;
+    return `${breadcrumb()}<section class="settings-panel"><h1>${esc(t('privacy.title'))}</h1>${['intro', 'storage', 'tracking', 'reset'].map(key => `<p>${esc(t('privacy.' + key))}</p>`).join('')}${link('nav.settings', 'settings')}</section>`;
   }
   function showDialog(html) {
-    clearTimeout(aiTimer); aiTimer = null; tts.stop(); modalReturn = document.activeElement;
+    clearTimeout(aiTimer); aiTimer = null; modalReturn = document.activeElement;
     dialog.innerHTML = html; dialog.showModal();
     const cancel = dialog.querySelector('[data-action="close-dialog"]'); if (cancel) cancel.focus();
   }
@@ -313,10 +389,12 @@
     const square = event.target.closest('[data-square]');
     if (square) {
       const at = Number(square.dataset.square);
-      if (route()[0] === 'game') gameSquare(at);
-      else if (route()[0] === 'exercise' && practice && !practice.solved) {
+      if (route()[0] === 'minigame') miniSquare(at);
+      else if (route()[0] === 'game') gameSquare(at);
+      else if (['exercise', 'lesson'].includes(route()[0]) && practice && !practice.solved) {
         const q = practice.questions[practice.at];
-        if (at === C.index(q.from)) { practice.selected = !practice.selected; practice.message = t(practice.selected ? 'practice.chooseSquare' : 'practice.choosePiece'); render(false); main.querySelector(`[data-square="${at}"]`).focus(); announce(practice.message); }
+        if (q.type === 'locate') { answer(at === C.index(q.to)); }
+        else if (at === C.index(q.from)) { practice.selected = !practice.selected; practice.message = t(practice.selected ? 'practice.chooseSquare' : 'practice.choosePiece'); render(false); main.querySelector(`[data-square="${at}"]`).focus(); announce(practice.message); }
         else if (practice.selected) answer(at === C.index(q.to));
         else { practice.message = t('practice.choosePiece'); render(false); main.querySelector(`[data-square="${at}"]`)?.focus(); announce(practice.message); }
       }
@@ -332,27 +410,36 @@
         const target = main.querySelector('[data-list-to]');
         if (!target || target.value === '') break;
         const at = Number(target.value);
-        if (route()[0] === 'game') gameSquare(at);
+        if (route()[0] === 'minigame') miniSquare(at);
+      else if (route()[0] === 'game') gameSquare(at);
         else if (practice && !practice.solved) answer(at === C.index(practice.questions[practice.at].to));
         break;
       }
-      case 'listen': {
-        if (tts.speaking) { tts.stop(); control.innerHTML = icon('sound') + `<span>${esc(t('common.listen'))}</span>`; break; }
-        const text = Array.from(main.querySelectorAll('[data-read]')).map(el => el.textContent).join('. ');
-        const spoken = tts.speak(text, () => { if (control.isConnected) control.innerHTML = icon('sound') + `<span>${esc(t('common.listen'))}</span>`; });
-        if (spoken) control.innerHTML = icon('sound') + `<span>${esc(t('common.stop'))}</span>`;
-        else { announce(t('common.voiceUnavailable')); const existing = main.querySelector('.voice-notice'); if (existing) existing.remove(); const note = document.createElement('p'); note.className = 'feedback hint voice-notice'; note.textContent = t('common.voiceUnavailable'); control.after(note); }
+      case 'mini-hint': {
+        const move = M.solution(mini.state)[0];
+        if (move) { mini.usedHelp = true; mini.hint = move; mini.selected = move.from; refreshMini(move.from); announce(t('play.hintText', { piece: t('piece.' + mini.state.board[move.from].toLowerCase()), from: C.square(move.from), to: C.square(move.to) })); }
         break;
       }
+      case 'mini-restart': { const id = mini.state.id, show = mini.showMoves; startMini(id, show); render(); break; }
+      case 'mini-undo':
+        if (mini.history.length) { mini.state = mini.history.pop(); mini.selected = null; mini.hint = null; mini.message = t('mini.undone'); refreshMini(mini.state.movers[0]); announce(mini.message); }
+        break;
+      case 'mini-lesson':
+        mini.usedHelp = true; miniReturn = M.catalog.find(c => c.id === mini.state.id).lesson; practiceReturn = false; go('lesson/' + miniReturn + '/0'); break;
       case 'example': exampleMoved = !exampleMoved; render(false); main.querySelector('[data-action="example"]').focus(); break;
       case 'finish-lesson': finishLesson(control.dataset.lesson); break;
       case 'exercise-hint': practice.hinted = true; practice.hintVisible = true; render(false); main.querySelector('[data-action="exercise-hint"]').focus(); announce(t(practice.questions[practice.at].key + '.hint')); break;
       case 'review-lesson': practice.hinted = true; practiceReturn = true; go('lesson/' + control.dataset.lesson + '/0'); break;
-      case 'return-exercise': practiceReturn = false; go('exercise/' + practice.id); break;
-      case 'next-exercise':
+      case 'return-exercise': practiceReturn = false; go(practice.topicId ? 'lesson/' + practice.topicId + '/' + (lessons.find(l => l.id === practice.topicId).steps + practice.at) : 'exercise/' + practice.id); break;
+      case 'next-exercise': {
+        const topicId = practice.topicId, lesson = lessons.find(l => l.id === topicId);
         practice.at++; Object.assign(practice, { hinted: false, corrected: false, solved: false, selected: false, hintVisible: false, message: '' });
-        if (practice.at >= practice.questions.length) go('practice-done'); else render();
+        if (topicId) {
+          if (practice.at >= practice.questions.length && !progress.lessons.includes(topicId)) { progress.lessons.push(topicId); save('progress', progress); }
+          go('lesson/' + topicId + '/' + (lesson.steps + practice.at));
+        } else if (practice.at >= practice.questions.length) go('practice-done'); else render();
         break;
+      }
       case 'repeat-exercise': startPractice(practice ? practice.id : 'all'); break;
       case 'game-hint': {
         const state = game.states.at(-1); gameHint = C.chooseMove(state);
@@ -374,16 +461,24 @@
       case 'close-dialog': closeDialog(); break;
       case 'delete-data': confirm('settings.confirmTitle', 'settings.confirmText', 'settings.confirm', () => {
         if (!storage.reset()) { syncNotices(); announce(t('common.storageUnavailable')); return; }
-        clearTimeout(aiTimer); game = null; practice = null; practiceReturn = false; selected = null; gameHint = null; gameMessage = '';
-        progress = { lessons: [], exercises: {} }; settings = { ...defaults }; applySettings(); render(); announce(t('settings.deleted'));
+        clearTimeout(aiTimer); mini = null; miniReturn = null; game = null; practice = null; practiceReturn = false; selected = null; gameHint = null; gameMessage = '';
+        progress = { lessons: [], exercises: {}, minigames: {} }; settings = { ...defaults }; applySettings(); render(); announce(t('settings.deleted'));
       }, true); break;
     }
   });
+  document.addEventListener('toggle', event => {
+    if (event.target.matches('.list-controls') && event.target.isConnected) listOpen = event.target.open;
+  }, true);
   document.addEventListener('change', event => {
+    if (event.target.matches('[data-mini-marks]')) {
+      mini.showMoves = event.target.checked; if (mini.showMoves) mini.usedHelp = true;
+      refreshMini(); main.querySelector('[data-mini-marks]')?.focus(); return;
+    }
     if (event.target.matches('[data-list-from]')) {
       if (event.target.value === '') return;
       const at = Number(event.target.value);
-      if (route()[0] === 'game') gameSquare(at);
+      if (route()[0] === 'minigame') miniSquare(at);
+      else if (route()[0] === 'game') gameSquare(at);
       else if (practice) { practice.selected = true; render(false); }
       const destination = main.querySelector('[data-list-to]'); if (destination) destination.focus();
       return;
@@ -396,7 +491,7 @@
     if (control.dataset.setting === 'lang') {
       const url = new URL(location.href); url.searchParams.set('lang', settings.lang); history.replaceState(null, '', url);
     }
-    save('settings', settings); render(false); main.querySelector(`[data-setting="${control.dataset.setting}"]`)?.focus();
+    save('settings', settings); render(false); if (settings.sounds && control.dataset.setting === 'sounds') sound.play('success'); main.querySelector(`[data-setting="${control.dataset.setting}"]`)?.focus();
   });
   document.addEventListener('submit', event => {
     if (event.target.id !== 'game-setup') return; event.preventDefault();
@@ -406,21 +501,23 @@
   });
   document.addEventListener('keydown', event => {
     const square = event.target.closest('[data-square]'); if (!square) return;
-    const at = Number(square.dataset.square), row = Math.floor(at / 8), col = at % 8;
-    const next = { ArrowUp: Math.max(0, row - 1) * 8 + col, ArrowDown: Math.min(7, row + 1) * 8 + col, ArrowLeft: row * 8 + Math.max(0, col - 1), ArrowRight: row * 8 + Math.min(7, col + 1), Home: event.ctrlKey ? 0 : row * 8, End: event.ctrlKey ? 63 : row * 8 + 7 }[event.key];
+    const at = Number(square.dataset.square), size = Number(square.closest('[data-board-size]').dataset.boardSize);
+    const visible = M.squares(size), position = visible.indexOf(at), row = Math.floor(position / size), col = position % size;
+    const nextPosition = { ArrowUp: Math.max(0, row - 1) * size + col, ArrowDown: Math.min(size - 1, row + 1) * size + col, ArrowLeft: row * size + Math.max(0, col - 1), ArrowRight: row * size + Math.min(size - 1, col + 1), Home: event.ctrlKey ? 0 : row * size, End: event.ctrlKey ? size * size - 1 : row * size + size - 1 }[event.key];
+    const next = visible[nextPosition];
     if (next !== undefined) { event.preventDefault(); main.querySelectorAll('[data-square]').forEach(el => { el.tabIndex = -1; }); const dest = main.querySelector(`[data-square="${next}"]`); dest.tabIndex = 0; dest.focus(); }
     if (event.key === 'Escape') {
       event.preventDefault();
-      if (route()[0] === 'game') { selected = null; gameHint = null; gameMessage = ''; updateGame(at, true); }
+      if (route()[0] === 'minigame') { mini.selected = null; mini.hint = null; refreshMini(at); }
+      else if (route()[0] === 'game') { selected = null; gameHint = null; gameMessage = ''; updateGame(at, true); }
       else if (practice) { practice.selected = false; render(false); main.querySelector(`[data-square="${at}"]`)?.focus(); }
     }
   });
   dialog.addEventListener('cancel', event => { event.preventDefault(); closeDialog(); });
-  window.addEventListener('hashchange', () => { if (dialog.open) closeDialog(); exampleMoved = false; render(); });
+  window.addEventListener('hashchange', () => { if (dialog.open) closeDialog(); exampleMoved = false; listOpen = false; render(); });
   window.addEventListener('offline', syncNotices); window.addEventListener('online', syncNotices);
-  window.addEventListener('pagehide', () => { clearTimeout(aiTimer); tts.stop(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(aiTimer); tts.stop(); } else scheduleAI(); });
-  if ('speechSynthesis' in window) window.speechSynthesis.getVoices();
+  window.addEventListener('pagehide', () => { clearTimeout(aiTimer); sound.stop(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(aiTimer); sound.stop(); } else scheduleAI(); });
   applySettings(); render(false);
   if ('serviceWorker' in navigator && ['http:', 'https:'].includes(location.protocol)) {
     navigator.serviceWorker.register('./sw.js').then(registration => registration.update()).catch(() => { /* Direct file use and unavailable SW do not prevent play. */ });

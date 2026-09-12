@@ -8,7 +8,7 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const exists = file => fs.existsSync(path.join(root, file));
 function walk(dir = '') {
   return fs.readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap(e => {
-    if (['.git', '.claude', 'node_modules', '.cache', 'graphify-out', '.wrangler'].includes(e.name)) return [];
+    if (e.name.startsWith('.tmp') || ['.git', '.claude', 'node_modules', '.cache', 'graphify-out', '.wrangler'].includes(e.name)) return [];
     const file = path.posix.join(dir, e.name); return e.isDirectory() ? walk(file) : [file];
   });
 }
@@ -20,7 +20,7 @@ for (const file of files) {
     catch (error) { failures.push(file + ': ' + String(error.stderr)); }
   }
 }
-const required = ['AGENTS.md', 'CLAUDE.md', 'README.md', 'README.es.md', 'LICENSE', 'CONTRIBUTING.md', 'CONTRIBUTING.es.md', 'CODE_OF_CONDUCT.md', 'CODE_OF_CONDUCT.es.md', 'SECURITY.md', 'SECURITY.es.md', 'CLOUDFLARE.md', '_headers', '.assetsignore', 'wrangler.toml', '404.html', 'index.html', 'app.js', 'data.js', 'chess.js', 'manifest.json', 'sw.js', 'scripts/check-version-bump.js', '.github/workflows/validate.yml', 'doc/en/index.md', 'doc/es/indice.md', 'llms.txt', 'robots.txt', 'sitemap.xml'];
+const required = ['AGENTS.md', 'CLAUDE.md', 'README.md', 'README.es.md', 'LICENSE', 'CONTRIBUTING.md', 'CONTRIBUTING.es.md', 'CODE_OF_CONDUCT.md', 'CODE_OF_CONDUCT.es.md', 'SECURITY.md', 'SECURITY.es.md', 'CLOUDFLARE.md', '_headers', '.assetsignore', 'wrangler.toml', '404.html', 'index.html', 'app.js', 'data.js', 'chess.js', 'minigames.js', 'manifest.json', 'sw.js', 'scripts/check-version-bump.js', '.github/workflows/validate.yml', 'doc/en/index.md', 'doc/es/indice.md', 'llms.txt', 'robots.txt', 'sitemap.xml'];
 required.forEach(file => check(exists(file), 'Missing ' + file));
 const dictionaries = {};
 for (const lang of ['es', 'en']) vm.runInNewContext(read('strings.' + lang + '.js'), { window: { App: { i18n: { register(locale, data) { dictionaries[locale] = data; } } } } });
@@ -44,17 +44,26 @@ for (const lesson of lessons) {
     if (q.type === 'choice') {
       check(q.answer >= 0 && q.answer < q.options, 'Invalid correct answer ' + q.id);
       for (let i = 0; i < q.options; i++) check(keys.includes(q.key + '.a.' + i), 'Missing option ' + q.id);
-    } else check(q.from in lesson.pos && /^[a-h][1-8]$/.test(q.to), 'Invalid movement task ' + q.id);
+    } else if (q.type === 'locate') check(/^[a-h][1-8]$/.test(q.to), 'Invalid location task ' + q.id);
+    else check(q.from in lesson.pos && /^[a-h][1-8]$/.test(q.to), 'Invalid movement task ' + q.id);
   }
 }
-check(lessons.flatMap(l => l.exercises).length === 28, '28 exercises required');
+check(lessons.flatMap(l => l.exercises).length === 29, '29 exercises required');
+const miniCatalog = require('../minigames.js').catalog;
+check(miniCatalog.length === 12, '12 mini-games required');
+for (const challenge of miniCatalog) {
+  check(!ids.has(challenge.id), 'Duplicate mini-game ' + challenge.id); ids.add(challenge.id);
+  check(lessons.some(l => l.id === challenge.lesson), 'Missing review lesson ' + challenge.id);
+  for (const suffix of ['title', 'intro', 'rule']) check(keys.includes('mini.' + challenge.id + '.' + suffix), 'Missing mini-game copy ' + challenge.id + '.' + suffix);
+}
 const html = read('index.html'), app = read('app.js');
 for (const match of (html + app).matchAll(/(?:data-i18n="|\bt\(')([\w.-]+)(?:"|'\s*[,\)])/g)) check(keys.includes(match[1]), 'Unknown literal translation ' + match[1]);
+check(!/speechSynthesis|SpeechSynthesisUtterance|\btts\b/.test(app + read('assets/js/core.js')), 'Narration must not return');
 const sw = read('sw.js');
 const entries = [...sw.match(/var ARCHIVOS = \[([\s\S]*?)\];/)[1].matchAll(/"(.+?)"/g)].map(m => m[1]);
 check(/var VERSION = 'enroca-v\d+'/.test(sw), 'Missing semantic SW version');
 for (const entry of entries) check(entry === './' || exists(entry.slice(2)), 'Missing precache file ' + entry);
-for (const file of files.filter(f => /^(?:index\.html|app\.js|chess\.js|data\.js|strings\..*\.js|manifest\.json|assets\/)/.test(f))) check(entries.includes('./' + file), 'Uncached runtime asset ' + file);
+for (const file of files.filter(f => /^(?:index\.html|app\.js|chess\.js|minigames\.js|data\.js|strings\..*\.js|manifest\.json|assets\/)/.test(f))) check(entries.includes('./' + file), 'Uncached runtime asset ' + file);
 for (const match of html.matchAll(/(?:src|href)="([^"#?]+)"/g)) if (!/^(https?:|mailto:)/.test(match[1])) check(exists(match[1].split('?')[0]), 'Missing HTML asset ' + match[1]);
 check(html.includes('charset="UTF-8"') && html.includes('width=device-width, initial-scale=1'), 'Missing UTF-8/viewport');
 check((html.match(/name="DC\./g) || []).length >= 7, 'Missing Dublin Core');
@@ -84,3 +93,5 @@ check(manifest.scope === './' && manifest.start_url === './', 'PWA must support 
 if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
 console.log('Structure/i18n/cache: ' + count + ' checks passed.');
 execFileSync(process.execPath, [path.join(__dirname, 'test-chess.js')], { stdio: 'inherit' });
+
+execFileSync(process.execPath, [path.join(__dirname, 'test-minigames.js')], { stdio: 'inherit' });

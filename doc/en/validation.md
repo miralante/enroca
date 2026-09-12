@@ -1,45 +1,35 @@
-# Enroca validation
+# Enroca v2 validation
 
-Local review performed on 12 September 2026.
+Local review: 12 September 2026.
 
-## Completed
+## Checked
 
-- `node scripts/check.js`: structure, syntax, translations, placeholders, content,
-  cache files, metadata and 19 chess regression groups pass.
-- Reference trees: starting position through depth 4 (197281 leaf positions),
-  Kiwipete through depth 3 (97862) and rook/pawn ending (2812).
-- Chromium: the 14-lesson catalog, learning flow and all 28 exercises; hints, correction, review and
-  repeating independently to improve the recorded support state.
-- Two-player and computer games, invalid moves, hints, undo, restore, pending-turn
-  cancellation and promotion selection/cancellation.
-- Keyboard, skip link and large-control alternative to board squares.
-- ES/EN with larger text, high contrast and piece names: checked screens do not
-  overflow at 320, 375, 768 and 1280 pixels.
-- Offline lessons and games after precaching.
-- No external runtime requests or execution errors during tests.
-- Confirmed deletion preserves other apps’ keys. Blocked/corrupt storage does not
-  prevent play. Direct opening of index.html works.
-- Own metadata/llms generators are current and repeatable.
-- Apptonomia portal `node scripts/check.js` passes (134 checks).
-- Catalog, docs, canonical-source table and meta-graph include Enroca (8 projects).
-- Local graphify skill synchronized through the suite’s tool.
+- Structure, syntax, ES/EN parity, placeholders, metadata and precache.
+- 19 chess regression groups, including reference move trees.
+- All 12 mini-games and their 178 reachable positions remain solvable.
+- Browser: all 14 topics and 29 tasks completed. “Meet the board” continues from
+  presentation to locating a1, c3 and h1; hints, correction and review preserve the journey.
+- Copy without phase or support labels. No speech synthesis or narration. Silence
+  by default, optional game sounds and immediate cancellation on mute.
+- Flags, obstacles, captures, check, undo, hints after detours, return from examples,
+  and list controls that open only on request.
+- Local/computer matches: legal moves, undo, resume, pending-turn cancellation,
+  promotion and cancelling the dialog.
+- Keyboard and focus; ES/EN, larger text, contrast and piece names without overflow
+  at 320, 375, 768 and 1280 px. Large coordinates in square-location tasks.
+- Offline topics, challenges and matches after first visit. No external runtime
+  requests or execution errors in browser tests.
+- Previous progress retained for current IDs; two former board tasks are replaced
+  by three location tasks. Deletion touches only `enroca:` data.
+- Blocked/corrupt storage and direct `index.html` opening checked.
+- Metadata and llms.txt generators current. Cache prepared as `enroca-v2`.
 
-## Limits and follow-up
+## Limits
 
-- The portal’s separate public-term scanner still reports seven pre-existing hits,
-  verified in HEAD: six term categories in strings.es.js/strings.en.js and “children”
-  in a js/script.js comment. Enroca does not introduce them. They belong to the
-  existing portal and need a separate resolution there.
-- The new repository has no previous revision for the cache-bump comparison.
-  Initial version: enroca-v1.
-- Real learner/supporter, screen-reader and installed-voice review remains.
-  No certification or effectiveness claim is made.
-- Published to GitHub and Cloudflare on 2026-09-12:
-  https://github.com/miralante/enroca and https://enroca.apptonomia.uk/.
-  GitHub Actions passed; Cloudflare version `1631bbd8-8eb8-400f-986d-17805a36a1f9`.
-  The full browser suite passed again in production, including offline use and
-  the four screen sizes. HTTP headers and MIME types are correct; development
-  tooling and Git files are not published (404). Deployment is manual with
-  Wrangler; GitHub Actions validates but does not deploy.
+Review with people, supporters and real screen readers remains. No certification
+or effectiveness is claimed. Progress indicates activity, not mastery.
 
-See [the technical guide](technical.md) to repeat browser QA.
+Open tabs retain the old version until closed; an update does not replace an ongoing
+match. GitHub Actions validates; Wrangler publishes manually.
+
+See [the technical guide](technical.md) to repeat checks.

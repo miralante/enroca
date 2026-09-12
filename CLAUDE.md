@@ -1,6 +1,6 @@
 # Enroca — agent handbook
 
-Enroca teaches chess through short lessons, comprehension exercises and supported play.
+Enroca teaches chess through visual topics, continuous tasks, challenges and matches.
 It is an independent sibling in Apptonomia. Read `doc/en/spec.md` (Spanish mirror
 `doc/es/spec.md`) for product decisions and `doc/en/technical.md` (`doc/es/tecnico.md`)
 for architecture. Follow the suite's `../apptonomia/doc/en/guia-de-cumplimiento.md`
@@ -19,14 +19,16 @@ and new-sibling recipe. This file is the operational source of truth.
 - No telemetry, accounts, remote voices, external fonts or remote chess engines.
 - No clinical or audience labels in public UI, metadata or READMEs.
 - Use short sentences, one idea per step, calm feedback and optional support.
-- Preserve keyboard use, local voices, visible focus, responsive layout and contrast.
+- Keep explanation and checking inside each continuous topic; never label UI phases Learn/Practice/Play or label support use.
+- No narration or speech synthesis. Optional game sounds only, off by default.
+- Preserve keyboard use, optional game sounds, visible focus, responsive layout and contrast.
 - Do not publish, push or create external repositories without user authorization.
 
 ## Orientation
 
 `data.js` defines lesson order, demonstration positions and exercises.
 `strings.es.js` / `strings.en.js` own all copy; `assets/js/core.js` owns local
-storage, translation and optional device voice. `chess.js` is a pure rules engine,
+storage, translation and optional game sounds. `chess.js` is a pure rules engine,
 also loaded by Node tests. `app.js` renders hash routes and manages the journey.
 `sw.js` precaches the whole product and deletes only Enroca caches in its scope.
 `CLOUDFLARE.md` is the deployment runbook. `doc/en/team.md` describes validation

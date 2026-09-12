@@ -9,7 +9,7 @@ opening works; the service worker requires HTTPS or localhost.
 | app.js | Hash routes, lessons, practice, support and game state |
 | data.js | Learning order, diagrams and exercises without text |
 | strings.es.js / strings.en.js | All text, including lessons and hints |
-| assets/js/core.js | Translation, scoped storage and device voice |
+| assets/js/core.js | Translation, scoped storage and game sounds |
 | chess.js | Pure rules functions without DOM or storage |
 | sw.js | Full precache, version and cache isolation |
 | scripts/check.js | Structural checks and content/engine regressions |
@@ -34,7 +34,7 @@ The local opponent evaluates captures, attacked destinations and mate in one. No
 remote AI. Its short response timer is canceled when leaving, opening a dialog,
 hiding the tab or undoing. Returning resumes a pending turn.
 
-## Data and voice
+## Data and sound
 
 Keys: `enroca:settings`, `enroca:progress`, `enroca:game`. Guarded storage access;
 invalid values are ignored. Progress IDs are checked against the catalog. Only
@@ -44,8 +44,8 @@ one move or a human/opponent pair. Two-step deletion touches only Enroca keys.
 Concurrent tabs are not synchronized: the last write wins. Use one tab per device
 for a consistent saved journey.
 
-SpeechSynthesis requires a `localService` voice in the active language. Remote
-default voices are not used. A missing voice shows a notice; text remains available.
+Web Audio generates brief tones for moves and completed goals. `sounds` defaults to false.
+The audio context is created only after opt-in; mute or hiding the tab stops active sounds.
 
 ## Accessibility and tests
 
@@ -63,3 +63,15 @@ package install is needed. Serve 127.0.0.1:8099 before running it.
 For metadata, edit app.config.json and run scripts/build-head.js and
 scripts/build-llms-txt.js. This is maintenance, not a build needed to run the app.
 See CLOUDFLARE.md for deployment and caching.
+
+## Mini-games
+
+`minigames.js` contains the catalog and pure `start`, `moves`, `play` and `solution`
+functions. Smaller boards show a subset of normal chess coordinates. Breadth-first
+search computes hints from the current state. Check challenges delegate to
+`chess.js`; movement training does not require kings. `app.js` keeps the transient
+state and undo history in memory. `enroca:progress.minigames` only saves completed
+goals. Loading accepts older progress without that field; reset also removes goals.
+`scripts/test-minigames.js` checks all 178 reachable positions remain solvable.
+`scripts/test-minigames-browser.cjs` covers all 12 challenges, navigation, lists,
+languages, screen sizes and offline use.

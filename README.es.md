@@ -2,11 +2,13 @@
 
 **Ajedrez, paso a paso.** Una app de la suite [Apptonomia](https://apptonomia.uk/).
 
-Conoce las piezas. Practica lo aprendido. Juega a tu ritmo.
+Tableros, piezas, retos y partidas.
 
-- **Aprende:** 14 lecciones cortas, con ejemplos de movimientos y lectura opcional.
-- **Practica:** 28 ejercicios ligados a las lecciones. Pistas y repaso disponibles.
-- **Juega:** pocas piezas o tablero completo. Con Enroca o con otra persona.
+- 14 temas con ejemplos visuales y acciones en el mismo recorrido.
+- 29 actividades: localizar casillas, elegir respuestas y mover piezas.
+- 12 retos con banderas, caminos, capturas y protección del rey.
+- Partidas con pocas piezas o con todas, con Enroca u otra persona.
+- Sonidos de juego opcionales, desactivados al empezar. Sin narración.
 - Sin reloj, cuentas, anuncios, telemetría ni dependencias de ejecución.
 - Español e inglés. Teclado, texto grande, contraste alto y nombres de piezas.
 - Guardado local, deshacer, reanudar partida y borrado de datos con confirmación.

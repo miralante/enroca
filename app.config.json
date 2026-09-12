@@ -2,12 +2,12 @@
   "name": "Enroca",
   "domain": "enroca.apptonomia.uk",
   "title": "Enroca — Ajedrez, paso a paso",
-  "description": "Aprende ajedrez con 14 lecciones cortas, 28 ejercicios y partidas con ayuda. Sin reloj, sin cuentas y a tu ritmo.",
+  "description": "Ajedrez con tableros, piezas, retos y partidas.",
   "keywords": "enroca, apptonomia, ajedrez, aprender ajedrez, lectura fácil, chess",
   "author": "Apptonomia",
   "ogSiteName": "Enroca",
-  "ogDescription": "Conoce las piezas. Practica lo aprendido. Juega a tu ritmo.",
-  "twitterDescription": "Ajedrez, paso a paso: lecciones, ejercicios y partidas con ayuda.",
+  "ogDescription": "Conoce el tablero. Encuentra caminos. Protege al rey.",
+  "twitterDescription": "Ajedrez con tableros, piezas, retos y partidas.",
   "ogImageAlt": "Enroca — Ajedrez, paso a paso",
   "themeColor": "#214e40",
   "colorScheme": "light",
@@ -15,13 +15,13 @@
   "iconAsset": "assets/img/icon.svg",
   "manifest": "manifest.json",
   "dcCreator": "Enroca",
-  "dcSubject": "Aprender ajedrez con lecciones cortas, práctica y juego.",
+  "dcSubject": "Tableros, piezas, retos y partidas de ajedrez.",
   "dcRights": "MIT — ver LICENSE.",
   "dcType": "InteractiveResource",
   "faq": [
     {
       "question": "¿Qué es Enroca?",
-      "answer": "Una app de Apptonomia para aprender ajedrez con lecciones, ejercicios y partidas con ayuda."
+      "answer": "Una app de Apptonomia con tableros, piezas, retos y partidas de ajedrez."
     },
     {
       "question": "¿Puedo jugar sin reloj?",
@@ -30,13 +30,18 @@
     {
       "question": "¿Dónde se guarda mi progreso?",
       "answer": "Solo en este navegador. Puedes borrarlo desde Ajustes."
+    },
+    {
+      "question": "¿Cómo son los minijuegos?",
+      "answer": "Hay 12 retos con metas visuales: llegar a banderas, buscar caminos y proteger al rey. Empiezas con tableros pequeños. Puedes pedir pistas, deshacer y repetir sin reloj."
     }
   ],
   "llmsTitle": "Enroca — Ajedrez, paso a paso",
-  "llmsSummary": "Ajedrez con lecciones, ejercicios y juego en español e inglés.",
+  "llmsSummary": "Ajedrez con temas visuales, 12 retos y partidas en español e inglés.",
   "llmsWhatItIs": [
-    "14 lecciones cortas con ejemplos visuales.",
-    "28 ejercicios relacionados con las lecciones, con pistas opcionales.",
+    "14 temas: cada ejemplo continúa con una acción en el mismo recorrido.",
+    "29 actividades para localizar casillas, elegir respuestas y mover piezas.",
+    "12 minijuegos: banderas en tableros de 4 × 4, caminos de 6 × 6 y protección del rey con pocas piezas.",
     "Partidas con pocas piezas o con todas, con Enroca o entre dos personas.",
     "Sin reloj, sin registro y sin seguimiento. Progreso local."
   ],

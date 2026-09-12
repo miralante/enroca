@@ -1,26 +1,19 @@
 # Acompañar con Enroca
 
-Empieza preguntando si la persona quiere jugar. Acordad una sola idea para hoy.
-Puedes usar un tablero físico junto a la pantalla. Deja que la persona toque las piezas.
+Acordad una sola idea para hoy. Se puede usar un tablero físico junto a la pantalla.
 
-1. Lee o escucha una lección. Pide que señale la pieza del ejemplo.
-2. Invita a explicar la regla con sus propias palabras o con un movimiento.
-3. Abre los dos ejercicios de esa lección. Da tiempo; no hay límite.
-4. Si necesita ayuda, usa una pista o vuelve a la lección. Evita responder por ella.
-5. Prueba una partida con pocas piezas. Habla de una decisión, no de ganar.
+1. Abre un tema y deja que la persona observe o señale el ejemplo.
+2. Pulsa Siguiente: el mismo recorrido propone una acción concreta.
+3. Da tiempo para responder. Una pista o volver al ejemplo están disponibles.
+4. Propón un reto con esa pieza o una partida con pocas piezas.
+5. Cambia la posición en un tablero físico para observar si la regla se entiende en otro contexto.
 
-Preguntas útiles: «¿De quién es el turno?», «¿Dónde puede ir esta pieza?» y
-«¿Está el rey a salvo?». Cambia la posición en el tablero físico para comprobar
-si la regla se entiende en otro ejemplo. Repite otro día si la persona quiere.
+La interfaz muestra solo metas resueltas. Internamente el progreso distingue si hubo
+pista, repaso o corrección; no registra errores, tiempos ni intentos. Estas señales no
+son una evaluación de dominio y no generan informes.
 
-Los estados Visto y Resuelto son señales de actividad, no de dominio. El progreso
-con ayuda incluye respuestas corregidas. Enroca no almacena datos clínicos ni genera
-informes. Si recoges observaciones, usa los procedimientos acordados en tu entorno.
+En Ajustes hay texto grande, contraste, nombres de piezas e idioma. «Elegir por nombre»
+ofrece controles mayores que las casillas. No hay narración; los sonidos de juego son opcionales.
 
-En Ajustes puedes elegir texto grande, contraste, nombres e idioma. Escuchar solo
-usa voces locales disponibles. Si faltan, puedes leer con la persona. En móvil,
-«Mover con una lista» ofrece controles mayores que las casillas.
-
-Antes de una publicación estable, probar con personas usuarias y de apoyo: comprensión
-de iconos y palabras, ritmo de lectura, pistas útiles, control táctil y autonomía.
-No declarar validación de lectura fácil, WCAG ni eficacia hasta realizar esa revisión.
+Validar con personas usuarias y de apoyo la comprensión de palabras y símbolos,
+el ritmo, el control táctil, el lector de pantalla y la autonomía. No se afirma certificación ni eficacia.

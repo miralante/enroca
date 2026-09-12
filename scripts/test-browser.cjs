@@ -9,6 +9,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 960 }, locale: 'es-ES' });
+  await context.addInitScript(() => { Object.defineProperty(window, 'speechSynthesis', { get() { throw new Error('Narration was accessed'); } }); });
   const page = await context.newPage(), errors = [], external = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => { if (/^https?:/.test(request.url()) && new URL(request.url()).origin !== new URL(url).origin) external.push(request.url()); });
@@ -18,45 +19,58 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
   const clickSquare = s => page.locator('[data-square="' + C.index(s) + '"]').click();
   try {
     await go('home');
-    assert.equal(await page.locator('.path-card').count(), 3);
+    assert.equal(await page.locator('.topic-group').count(), 3);
+    assert.equal(await page.locator('.lesson-card').count(), 14);
+    assert.deepEqual(await page.locator('.top-nav a').allTextContents(), ['Inicio', 'Retos', 'Partida']);
     const captures = process.env.ENROCA_SCREENSHOTS;
     if (captures) { fs.mkdirSync(captures, { recursive: true }); await page.screenshot({ path: path.join(captures, 'home-desktop.png'), fullPage: true }); }
-    console.log('✓ Home and local assets load');
-    await go('learn'); assert.equal(await page.locator('.lesson-card').count(), 14);
     await page.locator('a[href="#lesson/board/0"]').click();
-    await page.locator('.lesson-instruction').waitFor();
+    const heading = await page.locator('main h1').innerText();
     await page.locator('a[href="#lesson/board/1"]').click();
+    assert.equal(await page.locator('.square.selected .coord').innerText(), 'a1');
     await page.locator('a[href="#lesson/board/2"]').click();
-    await act('finish-lesson').click();
-    assert.ok((await stored('progress')).lessons.includes('board'));
-    await page.locator('[data-practice="board"]').click();
-    await page.locator('[data-answer="1"]').click();
-    assert.equal(await page.locator('.feedback').count(), 1);
-    assert.equal((await stored('progress')).exercises['board-0'], undefined);
-    await act('exercise-hint').click(); await page.locator('[data-answer="0"]').click();
-    assert.equal((await stored('progress')).exercises['board-0'], 'supported');
+    assert.equal(await page.locator('main h1').innerText(), heading);
+    assert.equal(await page.locator('.lesson-instruction').innerText(), 'Toca a1.');
+    await clickSquare('b2');
+    assert.equal(await act('next-exercise').count(), 0);
+    await act('exercise-hint').click(); await clickSquare('a1');
+    assert.equal((await stored('progress')).exercises['board-a1'], 'supported');
+    assert.equal(await page.locator('.feedback').innerText(), '✓ ¡Bien!');
     await act('next-exercise').click();
-    await act('review-lesson').click(); await page.locator('.lesson-instruction').waitFor();
-    await act('return-exercise').click();
-    await page.locator('[data-answer="0"]').click(); await act('next-exercise').click();
+    await act('review-lesson').click(); await act('return-exercise').click(); await page.waitForFunction(() => document.querySelector('.lesson-instruction')?.textContent === 'Toca c3.');
+    assert.equal(await page.locator('.lesson-instruction').innerText(), 'Toca c3.');
+    await page.locator('.list-controls summary').click(); await page.locator('[data-list-to]').selectOption(String(C.index('c3'))); await act('list-move').click(); await act('next-exercise').click();
+    await clickSquare('h1'); await act('next-exercise').click();
     await page.locator('.complete').waitFor();
-    console.log('✓ Lessons, correction, hints, review and local achievements');
-    // Complete all content through UI; data gives expectations, not hidden app state.
+    assert.ok((await stored('progress')).lessons.includes('board'));
+    console.log('✓ Continuous topic: presentation, locating squares, hints and return');
     for (const lesson of lessons) {
-      await go('practice'); await page.locator('[data-practice="' + lesson.id + '"]').click();
+      await go('lesson/' + lesson.id + '/0');
+      const topic = await page.locator('main h1').innerText();
+      for (let step = 1; step <= lesson.steps; step++) await page.locator('a[href="#lesson/' + lesson.id + '/' + step + '"]').click();
       for (const q of lesson.exercises) {
+        assert.equal(await page.locator('main h1').innerText(), topic);
         if (q.type === 'choice') await page.locator('[data-answer="' + q.answer + '"]').click();
+        else if (q.type === 'locate') await clickSquare(q.to);
         else { await clickSquare(q.from); await clickSquare(q.to); }
         await act('next-exercise').click();
       }
       await page.locator('.complete').waitFor();
     }
-    assert.equal(Object.keys((await stored('progress')).exercises).length, 28);
-    assert.equal((await stored('progress')).exercises['board-0'], 'independent');
-    console.log('✓ All 28 exercises can be completed; independent repeat upgrades support');
+    assert.equal(Object.keys((await stored('progress')).exercises).length, 29);
+    assert.equal((await stored('progress')).exercises['board-a1'], 'independent');
+    assert.equal(await page.evaluate(() => App.sound.context), null);
+    console.log('✓ All 14 topics / 29 tasks complete; silence by default');
+    await go('settings'); await page.locator('[data-setting="sounds"]').check();
+    await page.waitForFunction(() => App.sound.context !== null);
+    await page.locator('[data-setting="sounds"]').uncheck();
+    assert.equal(await page.evaluate(() => App.sound.active.size), 0);
+    assert.equal((await stored('settings')).sounds, false);
+    console.log('✓ Optional game sounds and immediate mute');
     await go('play'); await page.locator('input[value="full"]').check(); await page.locator('input[value="local"]').check();
     await page.locator('#game-setup button[type="submit"]').click(); await page.locator('.board[role="grid"]').waitFor();
     await clickSquare('e2'); assert.equal(await page.locator('.destination').count(), 2);
+    assert.equal(await page.locator('.list-controls').getAttribute('open'), null, 'Board moves do not open optional controls');
     await clickSquare('e5'); assert.equal((await stored('game')).moves.length, 0);
     await clickSquare('e4'); assert.equal((await stored('game')).moves.length, 1);
     await clickSquare('e7'); await clickSquare('e5');
@@ -82,7 +96,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
     await act('undo').click(); assert.equal((await stored('game')).moves.length, 0);
     await clickSquare('e2'); await clickSquare('e4'); await act('undo').click();
     await page.waitForTimeout(850); assert.equal((await stored('game')).moves.length, 0);
-    await clickSquare('e2'); await clickSquare('e4'); await page.locator('a[data-nav="learn"]').click();
+    await clickSquare('e2'); await clickSquare('e4'); await page.locator('a[data-nav="home"]').click();
     await page.waitForTimeout(850); assert.equal((await stored('game')).moves.length, 1);
     await go('game'); await page.waitForFunction(() => JSON.parse(localStorage.getItem('enroca:game')).moves.length === 2);
     console.log('✓ Computer move, pair undo, pending-turn cancellation and resume');
@@ -105,11 +119,12 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
       await page.locator('[data-setting="names"]').check();
       for (const width of [320, 375, 768, 1280]) {
         await page.setViewportSize({ width, height: 900 });
-        for (const hash of ['home','learn','lesson/knight/1','practice','play','game','settings','privacy']) {
+        for (const hash of ['home','learn','lesson/knight/1','lesson/board/2','practice','play','game','settings','privacy']) {
           await page.goto(url + '?lang=' + lang + '#' + hash); await page.locator('main h1').waitFor();
           const overflow = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1);
           assert.equal(overflow, false, lang + ' ' + width + ' ' + hash + ' overflow');
           assert.equal(await page.locator('html').getAttribute('lang'), lang);
+          assert.equal(/con ayuda|sin pista|Aprende|Practica|Juega|with help|without hints|Listen|Escuchar/.test(await page.locator('body').innerText()), false, 'No design phases, support labels or narration');
           assert.equal(await page.locator('main').innerText().then(s => /\b(?:lesson|practice|play|home)\.[a-z]/.test(s)), false);
         }
       }
@@ -147,7 +162,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
     const corruptPage = await corrupt.newPage(); await corruptPage.goto(url + '#play');
     assert.equal(await corruptPage.locator('a[href="#game"]').count(), 0); await corrupt.close();
     const direct = await browser.newPage(); await direct.goto('file:///' + path.resolve(__dirname, '../index.html').replace(/\\/g, '/'));
-    await direct.locator('.path-card').first().waitFor(); await direct.locator('a[data-nav="play"]').click();
+    await direct.locator('.lesson-card').first().waitFor(); await direct.locator('a[data-nav="play"]').click();
     await direct.locator('#game-setup button[type="submit"]').click(); await direct.locator('.board').waitFor();
     console.log('✓ Blocked/corrupt storage and direct-file use');
   } finally { await browser.close(); }

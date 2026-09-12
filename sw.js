@@ -1,12 +1,13 @@
 /* Enroca — cache-first, isolated by app name and registration scope. */
 'use strict';
-var VERSION = 'enroca-v1';
+var VERSION = 'enroca-v2';
 var ARCHIVOS = [
   "./",
   "./index.html",
   "./app.js",
   "./data.js",
   "./chess.js",
+  "./minigames.js",
   "./strings.es.js",
   "./strings.en.js",
   "./assets/js/core.js",

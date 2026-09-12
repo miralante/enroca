@@ -5,26 +5,28 @@
   {
     "id": "board",
     "piece": "r",
-    "steps": 3,
+    "steps": 2,
     "pos": {},
-    "focus": "h1",
-    "marks": [
-      "h1"
-    ],
+    "focus": "a1",
+    "marks": [],
     "exercises": [
       {
-        "id": "board-0",
-        "type": "choice",
-        "key": "lesson.board.q.0",
-        "answer": 0,
-        "options": 3
+        "id": "board-a1",
+        "type": "locate",
+        "key": "lesson.board.locate.a1",
+        "to": "a1"
       },
       {
-        "id": "board-1",
-        "type": "choice",
-        "key": "lesson.board.q.1",
-        "answer": 0,
-        "options": 3
+        "id": "board-c3",
+        "type": "locate",
+        "key": "lesson.board.locate.c3",
+        "to": "c3"
+      },
+      {
+        "id": "board-h1",
+        "type": "locate",
+        "key": "lesson.board.locate.h1",
+        "to": "h1"
       }
     ]
   },

@@ -1,4 +1,4 @@
-/* Small independent suite core: translation, guarded local storage, local voice. */
+/* Small independent suite core: translation, guarded local storage, optional game sounds. */
 (function () {
   'use strict';
   const STORAGE_PREFIX = 'enroca:';
@@ -30,20 +30,35 @@
       return source.replace(/\{(\w+)\}/g, (_, k) => params[k] === undefined ? '{' + k + '}' : String(params[k]));
     }
   };
-  const tts = {
-    speaking: false,
-    stop() { if ('speechSynthesis' in window) window.speechSynthesis.cancel(); this.speaking = false; },
-    speak(text, onEnd) {
-      this.stop();
-      if (!('speechSynthesis' in window)) return false;
-      // Never fall back to a remote voice: the suite has no runtime third parties.
-      const voice = window.speechSynthesis.getVoices().find(v => v.localService && v.lang.toLowerCase().startsWith(locale));
-      if (!voice) return false;
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.voice = voice; utterance.lang = voice.lang; utterance.rate = 0.85;
-      utterance.onend = utterance.onerror = () => { this.speaking = false; if (onEnd) onEnd(); };
-      this.speaking = true; window.speechSynthesis.speak(utterance); return true;
+  const sound = {
+    enabled: false,
+    context: null,
+    active: new Set(),
+    stop() { for (const node of this.active) { try { node.stop(); } catch (_) {} } this.active.clear(); },
+    async play(kind = 'move') {
+      if (!this.enabled || document.hidden) return;
+      try {
+        const Audio = window.AudioContext || window.webkitAudioContext;
+        if (!Audio) return;
+        this.context ||= new Audio();
+        if (this.context.state === 'suspended') await this.context.resume();
+        if (!this.enabled || document.hidden) return;
+        this.stop();
+        const now = this.context.currentTime;
+        const notes = kind === 'success' ? [523.25, 659.25] : [330];
+        notes.forEach((hz, i) => {
+          const oscillator = this.context.createOscillator(), gain = this.context.createGain();
+          const begin = now + i * 0.09;
+          oscillator.type = 'sine'; oscillator.frequency.value = hz;
+          gain.gain.setValueAtTime(0, begin); gain.gain.linearRampToValueAtTime(0.07, begin + 0.012);
+          gain.gain.exponentialRampToValueAtTime(0.001, begin + 0.09);
+          oscillator.connect(gain); gain.connect(this.context.destination);
+          this.active.add(oscillator);
+          oscillator.onended = () => { this.active.delete(oscillator); oscillator.disconnect(); gain.disconnect(); };
+          oscillator.start(begin); oscillator.stop(begin + 0.1);
+        });
+      } catch (_) { /* Sound is optional; a blocked audio device never prevents play. */ }
     }
   };
-  window.App = { STORAGE_PREFIX, i18n, storage, tts };
+  window.App = { STORAGE_PREFIX, i18n, storage, sound };
 }());

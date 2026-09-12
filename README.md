@@ -2,11 +2,13 @@
 
 **Chess, step by step.** An [Apptonomia](https://apptonomia.uk/) app.
 
-Meet the pieces. Practice what you learned. Play at your own pace.
+Boards, pieces, challenges and matches.
 
-- **Learn:** 14 short lessons, movement examples and optional local read-aloud.
-- **Practice:** 28 lesson-linked exercises, optional hints and review.
-- **Play:** fewer pieces or a full board, with Enroca or another person.
+- 14 topics with visual examples and actions in one continuous journey.
+- 29 tasks: find squares, choose answers and move pieces.
+- 12 challenges with flags, paths, captures and king protection.
+- Matches with few or all pieces, against Enroca or another person.
+- Optional game sounds, off by default. No narration.
 - No clocks, accounts, advertising, telemetry or runtime dependencies.
 - Spanish and English. Keyboard control, larger text, contrast and piece names.
 - Local progress, undo, resume and confirmed data deletion.

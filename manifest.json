@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Enroca — Ajedrez, paso a paso",
   "short_name": "Enroca",
-  "description": "Lecciones, ejercicios y ajedrez con ayuda.",
+  "description": "Ajedrez con tableros, piezas, retos y partidas.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",

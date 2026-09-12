@@ -11,3 +11,5 @@ Start with what you need:
 - [Create content](creating-elements-guide.md)
 - [Open the app](quick-guide.md)
 - [Roles](roles.md)
+
+- [Mini-games: progression, rules and support](mini-games.md).

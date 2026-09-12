@@ -1,11 +1,12 @@
 # Enroca — Ajedrez, paso a paso
 
-> Ajedrez con lecciones, ejercicios y juego en español e inglés.
+> Ajedrez con temas visuales, 12 retos y partidas en español e inglés.
 
 ## What it is
 
-- 14 lecciones cortas con ejemplos visuales.
-- 28 ejercicios relacionados con las lecciones, con pistas opcionales.
+- 14 temas: cada ejemplo continúa con una acción en el mismo recorrido.
+- 29 actividades para localizar casillas, elegir respuestas y mover piezas.
+- 12 minijuegos: banderas en tableros de 4 × 4, caminos de 6 × 6 y protección del rey con pocas piezas.
 - Partidas con pocas piezas o con todas, con Enroca o entre dos personas.
 - Sin reloj, sin registro y sin seguimiento. Progreso local.
 
