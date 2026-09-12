@@ -36,14 +36,15 @@ storage; PWA installation and offline caching require HTTPS or localhost.
 
 GitHub publication and its validation workflow succeeded on 2026-09-12.
 Production deployment succeeded on 2026-09-12 using Wrangler 4.129.1.
-Cloudflare version: `1631bbd8-8eb8-400f-986d-17805a36a1f9`.
-Runtime source: commit `17bf8fd`; subsequent publication-report changes are docs only.
-The 23 public assets were uploaded. Source-control files, docs and local tooling
+Cloudflare version: `bec646da-b780-462e-83ec-935ff9085af8`.
+Runtime source: commit `a787bee`; subsequent publication-report changes are docs only.
+The 24 public assets were uploaded. Source-control files, docs and local tooling
 are excluded by `.assetsignore` and return 404 on the published origin.
 
-Published-origin Chromium QA passed: all 28 exercises, lessons, local/computer
+Published-origin Chromium QA passed: all 29 tasks in continuous topics, 12 mini-games, local/computer
 games, explicit promotion, keyboard, ES/EN, 320/375/768/1280 px, offline use and
-local data reset. HTTP cache/security headers and asset MIME types were checked.
+local data reset, silence by default and optional game sounds. Asset MIME types and
+exclusion of Git, local tooling and temporary QA files were checked. Current cache: `enroca-v2`.
 
 On Windows, if Node cannot validate a certificate trusted by the operating system,
 run Wrangler with `$env:NODE_USE_SYSTEM_CA='1'` (supported by the tested Node 24).
