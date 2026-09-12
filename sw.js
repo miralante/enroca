@@ -1,6 +1,6 @@
 /* Enroca — cache-first, isolated by app name and registration scope. */
 'use strict';
-var VERSION = 'enroca-v3';
+var VERSION = 'enroca-v4';
 var ARCHIVOS = [
   "./",
   "./index.html",

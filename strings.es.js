@@ -1,5 +1,6 @@
 /* Enroca — es; Spanish is the editorial source of truth. */
 window.App.i18n.register('es', {
+  suiteBy: 'Una app de',
   "lesson.board.title": "Conoce el tablero",
   "lesson.board.intro": "El tablero es el lugar donde juegas.",
   "lesson.board.step.0": "Este es el tablero. Tiene casillas claras y oscuras.",

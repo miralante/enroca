@@ -1,5 +1,6 @@
 /* Enroca — en; Spanish is the editorial source of truth. */
 window.App.i18n.register('en', {
+  suiteBy: 'An app by',
   "lesson.board.title": "Meet the board",
   "lesson.board.intro": "The board is where you play.",
   "lesson.board.step.0": "This is the board. It has light and dark squares.",

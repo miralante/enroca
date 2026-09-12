@@ -139,17 +139,20 @@
 </head>
 <body>
   <a href="#main" class="skip-link" data-i18n="nav.skip">Ir al contenido</a>
-  <header class="site-header">
-    <a href="#home" class="brand" aria-label="Enroca">
-      <img src="assets/img/icon.svg" width="48" height="48" alt="">
-      <span>enroca<span class="brand-suite">APPTONOMIA</span></span>
-    </a>
+  <header class="site-header suite-header">
+    <div class="suite-brand">
+      <img src="assets/img/icon.svg" width="44" height="44" alt="">
+      <div class="suite-brand-copy">
+        <a href="#home" class="brand" aria-label="Enroca">enroca</a>
+        <p class="suite-attribution"><span data-i18n="suiteBy">Una app de</span> <a href="https://apptonomia.uk/">Apptonomia</a>.</p>
+      </div>
+    </div>
     <nav class="top-nav" aria-label="Enroca">
       <a href="#home" data-nav="home"><span data-i18n="nav.home">Inicio</span></a>
       <a href="#minigames" data-nav="practice"><span data-i18n="nav.practice">Retos</span></a>
       <a href="#play" data-nav="play"><span data-i18n="nav.play">Partida</span></a>
     </nav>
-    <a href="#settings" class="settings-link"><span aria-hidden="true">⚙</span><span data-i18n="nav.settings">Ajustes</span></a>
+    <div class="suite-controls"><a href="#settings" class="settings-link"><span aria-hidden="true">⚙</span><span data-i18n="nav.settings">Ajustes</span></a></div>
   </header>
   <div id="connection" class="notice" hidden data-i18n="common.offline"></div>
   <div id="storage-notice" class="notice" hidden data-i18n="common.storageUnavailable"></div>
