@@ -37,7 +37,7 @@ See [the technical guide](technical.md) to repeat checks.
 ## Verified publication
 
 GitHub: `a787bee`, validation passed. Cloudflare:
-`bec646da-b780-462e-83ec-935ff9085af8`, cache `enroca-v2`.
+`54c08d76-d01d-478c-b917-152f2d837081`, cache `enroca-v4`.
 Both browser suites also passed at https://enroca.apptonomia.uk/, including
 all 29 tasks, 12 challenges, screen sizes and offline use.
 24 public assets; Git, configuration, tests and temporary files return 404.
