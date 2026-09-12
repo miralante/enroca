@@ -34,7 +34,9 @@ Revisión local realizada el 12 de septiembre de 2026.
   en el repositorio nuevo. La versión inicial es enroca-v1.
 - Falta revisión con personas usuarias y de apoyo, lectores de pantalla reales y
   voces instaladas en sus dispositivos. No se afirma certificación ni eficacia.
-- No hay repositorio remoto creado ni despliegue público. El dominio indicado es
-  el previsto por la suite. La validación del origen publicado queda para el despliegue.
+- GitHub publicado el 2026-09-12: https://github.com/miralante/enroca.
+  La validación automática del primer commit ha pasado. Wrangler 4.129.1 supera
+  el ensayo de despliegue. Cloudflare requiere renovar la sesión caducada;
+  siguen pendientes el despliegue público y su validación en el dominio.
 
 Para repetir QA del navegador, consultar [la guía técnica](tecnico.md).

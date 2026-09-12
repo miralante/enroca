@@ -1,5 +1,6 @@
 name = "enroca"
 compatibility_date = "2026-09-11"
+routes = [{ pattern = "enroca.apptonomia.uk", custom_domain = true }]
 
 [assets]
 directory = "."

@@ -1,15 +1,19 @@
 # Enroca deployment
 
 Enroca uses Cloudflare Workers static assets, following the Apptonomia runbook
-at ../apptonomia/CLOUDFLARE.md. Domain reserved by convention:
-https://enroca.apptonomia.uk/ (not provisioned by this change).
+at ../apptonomia/CLOUDFLARE.md. Configured custom domain:
+https://enroca.apptonomia.uk/ (pending authentication and first deployment).
 
 1. Run `node scripts/check.js` and `node scripts/check-version-bump.js`.
 2. Review `.assetsignore`, `_headers`, `wrangler.toml` and the exact source diff.
-3. Obtain authorization before creating miralante/enroca, pushing or deploying.
-4. Connect the approved repository to Workers Builds; no framework or build command.
-5. Use `wrangler deploy` only after deployment authorization. Wrangler is a
-   deployment tool, not an application dependency. Set the custom domain in Cloudflare.
+3. Repository: https://github.com/miralante/enroca (public, branch `main`).
+   Initial publication and deployment were authorized on 2026-09-12.
+4. For automatic deployments, connect the repository to Workers Builds; no framework
+   or build command. This connection is not configured yet.
+5. Use `npx wrangler@4.129.1 login` to renew authentication, then
+   `npx wrangler@4.129.1 deploy --dry-run` and `npx wrangler@4.129.1 deploy`.
+   Wrangler is a deployment tool, not an application dependency. The custom domain
+   is declared in `wrangler.toml`; deploy provisions it in the account owning the zone.
 6. Verify the deployed origin in a fresh browser session: both languages, 320/375/768/desktop,
    offline after first visit, local voice, install icons, promotions and data reset.
 7. Roll back via the previous Workers version when necessary. Increment the cache
@@ -29,4 +33,6 @@ Open `index.html` directly, or run `python scripts/serve.py`
 in this directory. Direct-file use supports lessons, exercises, game and guarded
 storage; PWA installation and offline caching require HTTPS or localhost.
 
-No remote repository or production deployment is part of the initial local delivery.
+GitHub publication and its validation workflow succeeded on 2026-09-12.
+The Wrangler dry run passed. Public deployment is pending renewal of the expired
+Cloudflare session; no production deployment has been claimed or recorded yet.

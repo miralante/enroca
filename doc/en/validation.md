@@ -34,7 +34,9 @@ Local review performed on 12 September 2026.
   Initial version: enroca-v1.
 - Real learner/supporter, screen-reader and installed-voice review remains.
   No certification or effectiveness claim is made.
-- No remote repository or public deployment was created. The domain follows the
-  suite’s intended naming convention. Published-origin QA remains for deployment.
+- Published to GitHub on 2026-09-12: https://github.com/miralante/enroca.
+  The initial commit passed GitHub Actions. The Wrangler 4.129.1 deployment dry run
+  passed. Cloudflare requires renewal of the expired session; public deployment
+  and published-origin QA remain pending.
 
 See [the technical guide](technical.md) to repeat browser QA.
