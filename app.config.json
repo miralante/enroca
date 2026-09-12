@@ -1,0 +1,55 @@
+{
+  "name": "Enroca",
+  "domain": "enroca.apptonomia.uk",
+  "title": "Enroca — Ajedrez, paso a paso",
+  "description": "Aprende ajedrez con 14 lecciones cortas, 28 ejercicios y partidas con ayuda. Sin reloj, sin cuentas y a tu ritmo.",
+  "keywords": "enroca, apptonomia, ajedrez, aprender ajedrez, lectura fácil, chess",
+  "author": "Apptonomia",
+  "ogSiteName": "Enroca",
+  "ogDescription": "Conoce las piezas. Practica lo aprendido. Juega a tu ritmo.",
+  "twitterDescription": "Ajedrez, paso a paso: lecciones, ejercicios y partidas con ayuda.",
+  "ogImageAlt": "Enroca — Ajedrez, paso a paso",
+  "themeColor": "#214e40",
+  "colorScheme": "light",
+  "ogImageAsset": "assets/img/icon-512.png",
+  "iconAsset": "assets/img/icon.svg",
+  "manifest": "manifest.json",
+  "dcCreator": "Enroca",
+  "dcSubject": "Aprender ajedrez con lecciones cortas, práctica y juego.",
+  "dcRights": "MIT — ver LICENSE.",
+  "dcType": "InteractiveResource",
+  "faq": [
+    {
+      "question": "¿Qué es Enroca?",
+      "answer": "Una app de Apptonomia para aprender ajedrez con lecciones, ejercicios y partidas con ayuda."
+    },
+    {
+      "question": "¿Puedo jugar sin reloj?",
+      "answer": "Sí. Las partidas no tienen reloj. Puedes pedir pistas y deshacer jugadas."
+    },
+    {
+      "question": "¿Dónde se guarda mi progreso?",
+      "answer": "Solo en este navegador. Puedes borrarlo desde Ajustes."
+    }
+  ],
+  "llmsTitle": "Enroca — Ajedrez, paso a paso",
+  "llmsSummary": "Ajedrez con lecciones, ejercicios y juego en español e inglés.",
+  "llmsWhatItIs": [
+    "14 lecciones cortas con ejemplos visuales.",
+    "28 ejercicios relacionados con las lecciones, con pistas opcionales.",
+    "Partidas con pocas piezas o con todas, con Enroca o entre dos personas.",
+    "Sin reloj, sin registro y sin seguimiento. Progreso local."
+  ],
+  "llmsWhatItIsNot": [
+    "No es una plataforma de torneos ni de juego en línea.",
+    "No usa cuentas, anuncios, servicios de IA ni analítica."
+  ],
+  "llmsResources": [
+    {
+      "name": "Apptonomia",
+      "url": "https://apptonomia.uk/",
+      "description": "El portal de la suite."
+    }
+  ],
+  "llmsLicense": "MIT — ver LICENSE."
+}

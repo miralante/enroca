@@ -1,0 +1,18 @@
+name: Validate Enroca
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/check.js
+      - run: node scripts/check-version-bump.js
+        env:
+          DIFF_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}

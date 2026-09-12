@@ -1,0 +1,23 @@
+# Enroca — Ajedrez, paso a paso
+
+> Ajedrez con lecciones, ejercicios y juego en español e inglés.
+
+## What it is
+
+- 14 lecciones cortas con ejemplos visuales.
+- 28 ejercicios relacionados con las lecciones, con pistas opcionales.
+- Partidas con pocas piezas o con todas, con Enroca o entre dos personas.
+- Sin reloj, sin registro y sin seguimiento. Progreso local.
+
+## What it is not
+
+- No es una plataforma de torneos ni de juego en línea.
+- No usa cuentas, anuncios, servicios de IA ni analítica.
+
+## Resources
+
+- [Apptonomia](https://apptonomia.uk/) — El portal de la suite.
+
+## License
+
+MIT — ver LICENSE.
