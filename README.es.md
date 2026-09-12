@@ -18,9 +18,8 @@ Abre [index.html](index.html) en tu navegador. Para instalar y probar el modo si
 conexión, ejecuta `python scripts/serve.py` y abre
 http://127.0.0.1:8099/. No necesitas instalar paquetes ni compilar.
 
-Código: [miralante/enroca](https://github.com/miralante/enroca).
-El dominio previsto es `enroca.apptonomia.uk`. El despliegue está preparado;
-queda pendiente renovar la sesión de Cloudflare.
+**[Abrir Enroca](https://enroca.apptonomia.uk/)** ·
+[Código en GitHub](https://github.com/miralante/enroca).
 
 ## Guías
 

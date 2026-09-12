@@ -34,9 +34,12 @@ Local review performed on 12 September 2026.
   Initial version: enroca-v1.
 - Real learner/supporter, screen-reader and installed-voice review remains.
   No certification or effectiveness claim is made.
-- Published to GitHub on 2026-09-12: https://github.com/miralante/enroca.
-  The initial commit passed GitHub Actions. The Wrangler 4.129.1 deployment dry run
-  passed. Cloudflare requires renewal of the expired session; public deployment
-  and published-origin QA remain pending.
+- Published to GitHub and Cloudflare on 2026-09-12:
+  https://github.com/miralante/enroca and https://enroca.apptonomia.uk/.
+  GitHub Actions passed; Cloudflare version `1631bbd8-8eb8-400f-986d-17805a36a1f9`.
+  The full browser suite passed again in production, including offline use and
+  the four screen sizes. HTTP headers and MIME types are correct; development
+  tooling and Git files are not published (404). Deployment is manual with
+  Wrangler; GitHub Actions validates but does not deploy.
 
 See [the technical guide](technical.md) to repeat browser QA.

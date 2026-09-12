@@ -18,9 +18,8 @@ Open [index.html](index.html) directly. For installation and offline caching,
 run `python scripts/serve.py` and open
 http://127.0.0.1:8099/. No packages or build step are needed.
 
-Source: [miralante/enroca](https://github.com/miralante/enroca).
-The intended domain is `enroca.apptonomia.uk`. Deployment is prepared;
-Cloudflare authentication needs to be renewed first.
+**[Open Enroca](https://enroca.apptonomia.uk/)** ·
+[Source on GitHub](https://github.com/miralante/enroca).
 
 ## Guides
 

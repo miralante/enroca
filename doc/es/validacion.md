@@ -34,9 +34,12 @@ Revisión local realizada el 12 de septiembre de 2026.
   en el repositorio nuevo. La versión inicial es enroca-v1.
 - Falta revisión con personas usuarias y de apoyo, lectores de pantalla reales y
   voces instaladas en sus dispositivos. No se afirma certificación ni eficacia.
-- GitHub publicado el 2026-09-12: https://github.com/miralante/enroca.
-  La validación automática del primer commit ha pasado. Wrangler 4.129.1 supera
-  el ensayo de despliegue. Cloudflare requiere renovar la sesión caducada;
-  siguen pendientes el despliegue público y su validación en el dominio.
+- GitHub y Cloudflare publicados el 2026-09-12:
+  https://github.com/miralante/enroca y https://enroca.apptonomia.uk/.
+  GitHub Actions correcto; versión de Cloudflare `1631bbd8-8eb8-400f-986d-17805a36a1f9`.
+  Se repitió correctamente la batería de navegador en producción, incluido el modo
+  sin conexión y los cuatro tamaños de pantalla. Cabeceras HTTP y tipos de archivos
+  correctos; código de herramientas y archivos de Git no publicados (404).
+  El despliegue es manual con Wrangler; GitHub Actions valida, pero no despliega.
 
 Para repetir QA del navegador, consultar [la guía técnica](tecnico.md).
