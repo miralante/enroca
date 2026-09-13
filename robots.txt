@@ -28,4 +28,4 @@ Allow: /
 User-agent: Applebot-Extended
 Allow: /
 
-Sitemap: https://enroca.apptonomia.uk/sitemap.xml
+Sitemap: https://ludia.apptonomia.uk/sitemap.xml

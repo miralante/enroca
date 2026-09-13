@@ -2,7 +2,7 @@
 
 Enroca uses Cloudflare Workers static assets, following the Apptonomia runbook
 at ../apptonomia/CLOUDFLARE.md. Configured custom domain:
-https://enroca.apptonomia.uk/ (live since 2026-09-12).
+https://ludia.apptonomia.uk/ (live since 2026-09-12).
 
 1. Run `node scripts/check.js` and `node scripts/check-version-bump.js`.
 2. Review `.assetsignore`, `_headers`, `wrangler.toml` and the exact source diff.

@@ -38,7 +38,7 @@ Consultar [la guía técnica](tecnico.md) para repetir las pruebas.
 
 GitHub: `a787bee`, validación correcta. Cloudflare:
 `54c08d76-d01d-478c-b917-152f2d837081`, caché `enroca-v4`.
-Las dos baterías de navegador pasaron también en https://enroca.apptonomia.uk/,
+Las dos baterías de navegador pasaron también en https://ludia.apptonomia.uk/,
 incluidos los 29 ejercicios, 12 retos, tamaños de pantalla y uso sin conexión.
 24 archivos públicos; Git, configuración, pruebas y archivos temporales devuelven 404.
 
