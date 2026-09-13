@@ -17,3 +17,4 @@ main{max-width:1232px;padding:36px 36px 64px}.button{border-radius:14px;box-shad
 @media(forced-colors:active){.ludia-cell{border:1px solid CanvasText}.ludia-cell.winning{outline:4px solid Highlight;outline-offset:-5px}.ludia-cell.hinted{outline:3px dashed Highlight;outline-offset:-5px}.game-card,.phase-card,.phase-tabs a[aria-current]{border:2px solid CanvasText}.course-progress i.filled{background:Highlight;forced-color-adjust:none}}
 /* Decorative transforms stay inside their allocated space on tablet layouts. */
 .hero-play{overflow:clip;border-radius:0}
+.step-pill { display: none; }
