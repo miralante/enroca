@@ -16,7 +16,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
   const solve = async id => { for (const move of M.solution(M.start(id))) { await square(move.from).click(); await square(move.to).click(); } };
   const progress = () => page.evaluate(() => JSON.parse(localStorage.getItem('enroca:progress')));
   try {
-    await go('home');
+    await go('learn');
     await page.evaluate(() => localStorage.setItem('enroca:progress', JSON.stringify({ lessons: ['board'], exercises: { 'rook-0': 'independent' } })));
     await page.reload();
     await page.locator('.mini-banner a').click();

@@ -1,32 +1,34 @@
-# Producto: Enroca
+# Producto: Ludia
 
 ## 1. Decisiones
 
-Enroca enseña ajedrez a personas con discapacidad intelectual mediante comprensión,
-práctica y juego acompañado. Nombre ES/EN: Enroca. Slug: enroca. Dominio previsto:
-enroca.apptonomia.uk. App de propósito único, PWA estática independiente.
-HTML/CSS/JavaScript sin build. Fuente de contenido: español; espejo completo: inglés.
+Ludia convierte Enroca en una plataforma de ocho juegos adaptados. El objetivo
+interno sigue siendo apoyar la participación de personas con discapacidad
+intelectual mediante reglas visuales, acciones sencillas y juego acompañado.
+Nombre ES/EN: Ludia. El proyecto y el alojamiento conservan los identificadores
+de Enroca para mantener la continuidad. PWA estática, independiente, sin build
+ni dependencias externas. Español como fuente editorial y espejo inglés completo.
 
 ## 2. Recorrido
 
-Inicio presenta 14 temas agrupados por contenido. Cada tema muestra una idea y
-continúa con una acción en el mismo recorrido, título y tablero. «Conoce el tablero»
-presenta las casillas y pide localizar a1, c3 y h1. Hay 29 actividades de localización,
-elección o movimiento. Retos y Partida están disponibles desde el inicio.
-La separación entre explicación, comprobación y juego es interna; no se presenta
-como fases ni como etiquetas de ayuda. El texto indica la siguiente acción.
-La respuesta correcta queda visible hasta pulsar Siguiente. No hay avance automático.
+Inicio presenta Tres en raya, Cuatro en raya, Guerra de barcos, Sudoku visual,
+Tetris, Dominó, Damas y Ajedrez. Cada juego tiene Reglas, Ejercicios y Jugar,
+accesibles desde el primer momento, sin bloqueos ni requisitos de progreso.
+Esta separación visible responde a la petición explícita para Ludia.
+Los siete juegos nuevos tienen 58 reglas y 58 ejercicios con ejemplos,
+comprobación, pistas y respuesta visible hasta pulsar Siguiente.
+Ajedrez conserva 14 temas, 29 ejercicios, 12 retos y todas sus partidas.
 
-Se guardan temas completados y actividades resueltas. El uso de pistas, repaso o
-corrección se distingue internamente; la interfaz muestra solo una marca de resolución.
-Un intento corregido, una pista o consultar la lección cuentan como ayuda. No se
-almacenan errores, tiempos, intentos, rachas ni comparaciones. Ver una lección no
-equivale a dominarla. Resolver un ejercicio no demuestra transferencia a situaciones nuevas.
+La partida y el progreso se guardan por juego. No se guardan errores, tiempos,
+rachas ni comparaciones. Ver reglas no demuestra dominio ni resolver un ejercicio
+demuestra transferencia. Las pistas son opcionales. Se puede repetir y deshacer.
+Las partidas por turnos permiten rival local o dos personas, salvo Barcos que usa
+rival local. Sudoku y Tetris son individuales. El rival tiene dos niveles cuando
+el juego permite elegirlo. El ajedrez conserva su rival original.
 
-Pocas piezas usa reyes, tres peones por lado y una torre blanca adicional: una
-posición inicial reducida. Todas las piezas ofrece la posición inicial normal.
-En ambos modos rigen los movimientos legales. Rival local sencillo o dos personas
-en el mismo dispositivo; sin juego remoto ni reloj. Deshacer siempre está disponible.
+Tetris empieza paso a paso. La caída automática es opcional, tiene dos velocidades
+y pausa. Ocultar la pestaña o salir del juego la detiene. Las metas de 5 o 10 filas
+son opcionales. Los sonidos empiezan apagados. No hay narración.
 
 ## 3. Principios
 

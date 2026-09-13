@@ -1,49 +1,49 @@
 {
-  "name": "Enroca",
+  "name": "Ludia",
   "domain": "enroca.apptonomia.uk",
-  "title": "Enroca — Ajedrez, paso a paso",
-  "description": "Ajedrez con tableros, piezas, retos y partidas.",
-  "keywords": "enroca, apptonomia, ajedrez, aprender ajedrez, lectura fácil, chess",
+  "title": "Ludia — Juegos a tu manera",
+  "description": "Ocho juegos con reglas visuales, ejercicios y partidas a tu ritmo.",
+  "keywords": "ludia, apptonomia, juegos, tres en raya, cuatro en raya, barcos, sudoku visual, tetris, dominó, damas, ajedrez",
   "author": "Apptonomia",
-  "ogSiteName": "Enroca",
-  "ogDescription": "Conoce el tablero. Encuentra caminos. Protege al rey.",
-  "twitterDescription": "Ajedrez con tableros, piezas, retos y partidas.",
-  "ogImageAlt": "Enroca — Ajedrez, paso a paso",
-  "themeColor": "#214e40",
+  "ogSiteName": "Ludia",
+  "ogDescription": "Descubre las reglas, prueba una jugada y disfruta de tu partida.",
+  "twitterDescription": "Ocho juegos con reglas visuales, ejercicios y partidas a tu ritmo.",
+  "ogImageAlt": "Ludia — Juegos a tu manera",
+  "themeColor": "#5141a1",
   "colorScheme": "light",
   "ogImageAsset": "assets/img/icon-512.png",
   "iconAsset": "assets/img/icon.svg",
   "manifest": "manifest.json",
-  "dcCreator": "Enroca",
-  "dcSubject": "Tableros, piezas, retos y partidas de ajedrez.",
+  "dcCreator": "Ludia",
+  "dcSubject": "Juegos de tablero y puzles con reglas, ejercicios y partidas.",
   "dcRights": "MIT — ver LICENSE.",
   "dcType": "InteractiveResource",
   "faq": [
     {
-      "question": "¿Qué es Enroca?",
-      "answer": "Una app de Apptonomia con tableros, piezas, retos y partidas de ajedrez."
+      "question": "¿Qué es Ludia?",
+      "answer": "Una app de Apptonomia con ocho juegos. Cada juego tiene reglas, ejercicios y partidas."
     },
     {
-      "question": "¿Puedo jugar sin reloj?",
-      "answer": "Sí. Las partidas no tienen reloj. Puedes pedir pistas y deshacer jugadas."
+      "question": "¿Qué juegos incluye?",
+      "answer": "Tres en raya, Cuatro en raya, Guerra de barcos, Sudoku visual, Tetris, Dominó, Damas y Ajedrez."
+    },
+    {
+      "question": "¿Puedo jugar a mi ritmo?",
+      "answer": "Sí. Hay pistas, deshacer y partidas sin reloj. Tetris empieza paso a paso y permite activar una caída automática con pausa."
     },
     {
       "question": "¿Dónde se guarda mi progreso?",
-      "answer": "Solo en este navegador. Puedes borrarlo desde Ajustes."
-    },
-    {
-      "question": "¿Cómo son los minijuegos?",
-      "answer": "Hay 12 retos con metas visuales: llegar a banderas, buscar caminos y proteger al rey. Empiezas con tableros pequeños. Puedes pedir pistas, deshacer y repetir sin reloj."
+      "answer": "Solo en este navegador. Cada juego guarda su partida. Puedes borrar los datos desde Ajustes."
     }
   ],
-  "llmsTitle": "Enroca — Ajedrez, paso a paso",
-  "llmsSummary": "Ajedrez con temas visuales, 12 retos y partidas en español e inglés.",
+  "llmsTitle": "Ludia — Juegos a tu manera",
+  "llmsSummary": "Ocho juegos en español e inglés con reglas, ejercicios y partidas completas.",
   "llmsWhatItIs": [
-    "14 temas: cada ejemplo continúa con una acción en el mismo recorrido.",
-    "29 actividades para localizar casillas, elegir respuestas y mover piezas.",
-    "12 minijuegos: banderas en tableros de 4 × 4, caminos de 6 × 6 y protección del rey con pocas piezas.",
-    "Partidas con pocas piezas o con todas, con Enroca o entre dos personas.",
-    "Sin reloj, sin registro y sin seguimiento. Progreso local."
+    "Tres en raya, Cuatro en raya, Guerra de barcos, Sudoku visual, Tetris, Dominó, Damas y Ajedrez.",
+    "58 reglas y 58 ejercicios de los siete juegos nuevos. Ajedrez conserva 14 temas, 29 ejercicios y 12 retos.",
+    "Partidas con rival local, para dos personas o individuales según el juego.",
+    "Tetris paso a paso por defecto y caída automática opcional con pausa.",
+    "Progreso y partidas locales. Sin cuentas, anuncios ni seguimiento."
   ],
   "llmsWhatItIsNot": [
     "No es una plataforma de torneos ni de juego en línea.",

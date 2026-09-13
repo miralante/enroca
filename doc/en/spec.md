@@ -1,29 +1,33 @@
-# Product: Enroca
+# Product: Ludia
 
 ## 1. Decisions
 
-Enroca teaches chess to people with intellectual disabilities through understanding,
-practice and supported play. ES/EN name: Enroca. Slug: enroca. Intended domain:
-enroca.apptonomia.uk. Single-purpose independent static PWA.
-Plain HTML/CSS/JavaScript, no build. Spanish editorial source and complete English mirror.
+Ludia evolves Enroca into a platform of eight adapted games. The internal purpose
+remains supporting participation by people with intellectual disabilities through
+visual rules, straightforward actions and supported play. ES/EN name: Ludia.
+The checkout and hosting retain Enroca identifiers for continuity. Independent
+static PWA, no build or external runtime dependencies. Spanish editorial source
+with a complete English mirror.
 
 ## 2. Journey
 
-Home presents 14 topics grouped by content. Each topic shows an idea and continues
-with an action using the same title and board. “Meet the board” introduces squares,
-then asks the person to find a1, c3 and h1. There are 29 location, choice and movement
-tasks. Challenges and Match are available immediately. Explanation, checking and
-play are internal design stages, never public phase or support labels. Copy states
-the next action. Correct responses remain visible until Next is selected.
+Home offers Tic-tac-toe, Connect four, Battleship, Visual sudoku, Tetris, Dominoes,
+Checkers and Chess. Every game has Rules, Exercises and Play, available immediately
+without gates or progress requirements. These visible phases follow the explicit
+Ludia request. The seven new games have 58 rules and 58 exercises with examples,
+checking, hints and feedback that remains until Next is selected.
+Chess retains 14 topics, 29 exercises, 12 challenges and all match options.
 
-Completed topics and solved tasks are stored, distinguishing support internally.
-The interface shows completion only. Correction, a hint or reviewing the lesson count as support. Errors,
-attempts, timing, streaks and comparisons are not stored. Reading does not imply
-mastery. Solving an exercise does not establish transfer to a new situation.
+Progress and matches are saved separately per game. Errors, timings, streaks and
+comparisons are not stored. Viewing rules does not demonstrate mastery; solving
+an exercise does not establish transfer. Hints, repeating and undo are available.
+Turn-based games offer a local opponent or two people, except Battleship which
+uses a local opponent. Sudoku and Tetris are solo games. Opponent difficulty is
+selectable where supported. Chess preserves its original local opponent.
 
-Few pieces uses kings, three pawns per side and an extra white rook: a reduced starting position. All pieces uses the standard starting position.
-Legal movement rules apply in both. A shallow local opponent or two people sharing
-a device; no online play or clocks. Undo remains available.
+Tetris starts in manual step mode. Automatic falling is optional, has two speeds
+and can be paused. Hiding the tab or leaving the game stops it. Targets of 5 or
+10 rows are optional. Game sounds start off. There is no narration.
 
 ## 3. Principles
 

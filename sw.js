@@ -1,6 +1,6 @@
-/* Enroca — cache-first, isolated by app name and registration scope. */
+/* Ludia — cache-first, isolated by app name and registration scope. */
 'use strict';
-var VERSION = 'enroca-v5';
+var VERSION = 'enroca-v7';
 var ARCHIVOS = [
   "./",
   "./index.html",
@@ -21,7 +21,29 @@ var ARCHIVOS = [
   "./assets/img/icon-192.png",
   "./assets/img/icon-512.png",
   "./manifest.json",
-  "./404.html"
+  "./404.html",
+  "./ludia.js",
+  "./assets/css/ludia.css",
+  "./assets/css/game-boards.css",
+  "./games/battleship.js",
+  "./games/checkers-content.js",
+  "./games/checkers-view.js",
+  "./games/checkers.js",
+  "./games/connect-four.js",
+  "./games/curriculum.js",
+  "./games/domino-content.js",
+  "./games/domino-view.js",
+  "./games/domino.js",
+  "./games/shared.js",
+  "./games/sudoku-content.js",
+  "./games/sudoku-view.js",
+  "./games/sudoku.js",
+  "./games/tetris-content.js",
+  "./games/tetris-view.js",
+  "./games/tetris.js",
+  "./games/tic-tac-toe.js",
+  "./games/ui-strings.js",
+  "./games/views.js"
 ];
 var SCOPE = encodeURIComponent(self.registration.scope);
 var CACHE = VERSION + ':' + SCOPE;

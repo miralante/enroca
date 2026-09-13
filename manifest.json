@@ -1,14 +1,14 @@
 {
   "id": "./",
-  "name": "Enroca — Ajedrez, paso a paso",
-  "short_name": "Enroca",
-  "description": "Ajedrez con tableros, piezas, retos y partidas.",
+  "name": "Ludia — Juegos a tu manera",
+  "short_name": "Ludia",
+  "description": "Ocho juegos con reglas visuales, ejercicios y partidas a tu ritmo.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#faf7f0",
-  "theme_color": "#214e40",
+  "background_color": "#f7f7fc",
+  "theme_color": "#5141a1",
   "icons": [
     {
       "src": "assets/img/icon-192.png",

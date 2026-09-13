@@ -41,3 +41,18 @@ GitHub: `a787bee`, validation passed. Cloudflare:
 Both browser suites also passed at https://enroca.apptonomia.uk/, including
 all 29 tasks, 12 challenges, screen sizes and offline use.
 24 public assets; Git, configuration, tests and temporary files return 404.
+
+## Ludia verification (local)
+
+The Ludia conversion is verified locally, separately from the historical Enroca
+publication above. All 58 new rules/examples and 58 exercises pass browser tests.
+Complete matches, undo, resuming, Tetris pause, domino handover, checkers keyboard
+and list controls are covered. Active boards and course screens fit 320, 375, 768
+and 1365 pixels in both languages with large text and high contrast. The original
+29 chess exercises and 12 challenges still pass their complete browser suites.
+
+All eight games work from the full service-worker cache. Tests cover every game
+save slot, old chess progress, scoped reset, invalid histories, unavailable storage
+and direct-file opening. The new icons and desktop/mobile game screens were
+visually inspected. Run the four browser suites listed in the root README.
+This work does not publish or change the existing hosting domain.

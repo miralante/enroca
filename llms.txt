@@ -1,14 +1,14 @@
-# Enroca — Ajedrez, paso a paso
+# Ludia — Juegos a tu manera
 
-> Ajedrez con temas visuales, 12 retos y partidas en español e inglés.
+> Ocho juegos en español e inglés con reglas, ejercicios y partidas completas.
 
 ## What it is
 
-- 14 temas: cada ejemplo continúa con una acción en el mismo recorrido.
-- 29 actividades para localizar casillas, elegir respuestas y mover piezas.
-- 12 minijuegos: banderas en tableros de 4 × 4, caminos de 6 × 6 y protección del rey con pocas piezas.
-- Partidas con pocas piezas o con todas, con Enroca o entre dos personas.
-- Sin reloj, sin registro y sin seguimiento. Progreso local.
+- Tres en raya, Cuatro en raya, Guerra de barcos, Sudoku visual, Tetris, Dominó, Damas y Ajedrez.
+- 58 reglas y 58 ejercicios de los siete juegos nuevos. Ajedrez conserva 14 temas, 29 ejercicios y 12 retos.
+- Partidas con rival local, para dos personas o individuales según el juego.
+- Tetris paso a paso por defecto y caída automática opcional con pausa.
+- Progreso y partidas locales. Sin cuentas, anuncios ni seguimiento.
 
 ## What it is not
 

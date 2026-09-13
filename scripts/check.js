@@ -63,7 +63,7 @@ const sw = read('sw.js');
 const entries = [...sw.match(/var ARCHIVOS = \[([\s\S]*?)\];/)[1].matchAll(/"(.+?)"/g)].map(m => m[1]);
 check(/var VERSION = 'enroca-v\d+'/.test(sw), 'Missing semantic SW version');
 for (const entry of entries) check(entry === './' || exists(entry.slice(2)), 'Missing precache file ' + entry);
-for (const file of files.filter(f => /^(?:index\.html|app\.js|chess\.js|minigames\.js|data\.js|strings\..*\.js|manifest\.json|assets\/)/.test(f))) check(entries.includes('./' + file), 'Uncached runtime asset ' + file);
+for (const file of files.filter(f => /^(?:index\.html|app\.js|ludia\.js|games\/|chess\.js|minigames\.js|data\.js|strings\..*\.js|manifest\.json|assets\/)/.test(f))) check(entries.includes('./' + file), 'Uncached runtime asset ' + file);
 for (const match of html.matchAll(/(?:src|href)="([^"#?]+)"/g)) if (!/^(https?:|mailto:)/.test(match[1])) check(exists(match[1].split('?')[0]), 'Missing HTML asset ' + match[1]);
 check(html.includes('charset="UTF-8"') && html.includes('width=device-width, initial-scale=1'), 'Missing UTF-8/viewport');
 check((html.match(/name="DC\./g) || []).length >= 7, 'Missing Dublin Core');
@@ -95,3 +95,4 @@ console.log('Structure/i18n/cache: ' + count + ' checks passed.');
 execFileSync(process.execPath, [path.join(__dirname, 'test-chess.js')], { stdio: 'inherit' });
 
 execFileSync(process.execPath, [path.join(__dirname, 'test-minigames.js')], { stdio: 'inherit' });
+execFileSync(process.execPath, [path.join(__dirname, 'test-ludia.js')], { stdio: 'inherit' });

@@ -18,10 +18,11 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
   const act = name => page.locator('[data-action="' + name + '"]');
   const clickSquare = s => page.locator('[data-square="' + C.index(s) + '"]').click();
   try {
-    await go('home');
+    await go('learn');
     assert.equal(await page.locator('.topic-group').count(), 3);
     assert.equal(await page.locator('.lesson-card').count(), 14);
-    assert.deepEqual(await page.locator('.top-nav a').allTextContents(), ['Inicio', 'Retos', 'Partida']);
+    assert.deepEqual(await page.locator('.top-nav a').allTextContents(), ['Juegos']);
+    assert.deepEqual(await page.locator('.chess-navigation a').allTextContents(), ['Ajedrez','Reglas','Ejercicios','Retos','Jugar']);
     const captures = process.env.ENROCA_SCREENSHOTS;
     if (captures) { fs.mkdirSync(captures, { recursive: true }); await page.screenshot({ path: path.join(captures, 'home-desktop.png'), fullPage: true }); }
     await page.locator('a[href="#lesson/board/0"]').click();
@@ -29,6 +30,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
     await page.locator('a[href="#lesson/board/1"]').click();
     assert.equal(await page.locator('.square.selected .coord').innerText(), 'a1');
     await page.locator('a[href="#lesson/board/2"]').click();
+    await page.waitForFunction(() => document.querySelector('.lesson-instruction')?.textContent === 'Toca a1.');
     assert.equal(await page.locator('main h1').innerText(), heading);
     assert.equal(await page.locator('.lesson-instruction').innerText(), 'Toca a1.');
     await clickSquare('b2');
@@ -162,7 +164,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
     const corruptPage = await corrupt.newPage(); await corruptPage.goto(url + '#play');
     assert.equal(await corruptPage.locator('a[href="#game"]').count(), 0); await corrupt.close();
     const direct = await browser.newPage(); await direct.goto('file:///' + path.resolve(__dirname, '../index.html').replace(/\\/g, '/'));
-    await direct.locator('.lesson-card').first().waitFor(); await direct.locator('a[data-nav="play"]').click();
+    await direct.locator('.game-card').first().waitFor(); await direct.locator('.game-card[href="#ludia/chess"]').click(); await direct.locator('.phase-card[href="#play"]').click();
     await direct.locator('#game-setup button[type="submit"]').click(); await direct.locator('.board').waitFor();
     console.log('✓ Blocked/corrupt storage and direct-file use');
   } finally { await browser.close(); }

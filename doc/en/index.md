@@ -1,8 +1,8 @@
-# Documentation — Enroca
+# Documentation — Ludia
 
 Start with what you need:
 
-- [Using Enroca](readme.md)
+- [Using Ludia](readme.md)
 - [Supporting someone](team.md)
 - [Product](spec.md)
 - [Architecture](technical.md)
@@ -13,3 +13,5 @@ Start with what you need:
 - [Roles](roles.md)
 
 - [Mini-games: progression, rules and support](mini-games.md).
+
+- [Add a game](adding-games.md)

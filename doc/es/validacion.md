@@ -41,3 +41,19 @@ GitHub: `a787bee`, validación correcta. Cloudflare:
 Las dos baterías de navegador pasaron también en https://enroca.apptonomia.uk/,
 incluidos los 29 ejercicios, 12 retos, tamaños de pantalla y uso sin conexión.
 24 archivos públicos; Git, configuración, pruebas y archivos temporales devuelven 404.
+
+## Verificación de Ludia (local)
+
+La conversión a Ludia se verifica en local, por separado de la publicación
+histórica de Enroca descrita arriba. Pasan los 58 ejemplos/reglas y los 58
+ ejercicios nuevos. Se prueban partidas completas, deshacer, retomar, pausa de
+Tetris, cambio de manos en Dominó y teclado/listas de Damas. Tableros activos y
+recorridos caben a 320, 375, 768 y 1365 píxeles en ambos idiomas con texto grande
+y contraste alto. Los 29 ejercicios y 12 retos del ajedrez original siguen
+pasando sus pruebas completas de navegador.
+
+Los ocho juegos funcionan desde la caché completa. Se comprueban las partidas
+por juego, progreso anterior, borrado limitado a esta app, historiales inválidos,
+almacenamiento bloqueado y apertura directa. Se han inspeccionado los iconos y
+las pantallas de escritorio y móvil. Las cuatro baterías de navegador están
+listadas en el README principal. Esta tarea no publica ni cambia el dominio.

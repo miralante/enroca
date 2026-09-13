@@ -1,8 +1,8 @@
-# Documentación — Enroca
+# Documentación — Ludia
 
 Empieza según lo que necesites:
 
-- [Usar Enroca](readme.md)
+- [Usar Ludia](readme.md)
 - [Acompañar](equipo.md)
 - [Producto](spec.md)
 - [Arquitectura](tecnico.md)
@@ -13,3 +13,5 @@ Empieza según lo que necesites:
 - [Roles](roles.md)
 
 - [Minijuegos: recorrido, reglas y apoyos](minijuegos.md).
+
+- [Añadir un juego](anadir-juegos.md)

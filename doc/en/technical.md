@@ -1,4 +1,41 @@
-# Enroca architecture
+# Ludia architecture
+
+## Multi-game platform
+
+Ludia evolves this checkout from Enroca into an eight-game catalogue. `ludia.js`
+handles `#home` and `#ludia/<id>[/rules|exercises|play|match][/step]`.
+The existing `app.js` keeps settings, privacy and the original chess routes.
+The chess overview links to its 14 topics, 29 exercises, 12 challenges and matches.
+Existing uncommitted compact-header styles and their notes below are preserved.
+
+`games/shared.js` registers engines and provides seeded randomness. The seven
+engines are pure, immutable and usable from Node. Each game supplies bilingual
+curriculum, an engine and a view adapter. See [adding games](adding-games.md).
+There are 58 new rules and 58 exercises in addition to the chess content.
+
+New keys use the existing prefix: `enroca:ludia-progress` and
+`enroca:ludia-sessions`. Successful exercises and viewed rules use stable IDs.
+Each game has an independent save slot containing a version, options, seed and
+legal actions. Restore replays actions through the engine; it does not trust a
+serialized board. Malformed or illegal histories cannot resume. Data reset
+clears both the old chess keys and the new slots, preserving other apps' keys.
+Computer undo returns to the prior human turn. Local two-person undo takes back
+one action. Tetris reload and undo stop automatic falling; manual play is default.
+
+Variants: Battleship permits touching ships, one shot per turn even on a hit and
+fleets 3/2/2 on 6 × 6 or 4/3/2/2 on 8 × 8. Sudoku generates unique solutions
+for 2 × 2 or 2 × 3 regions. Tetris uses seven-piece bags and bounded rotation
+offsets, not a claim of tournament rotation-system compliance. Dominoes is
+two-person draw double-six: seven each, player 1 starts any tile, draw until a
+move is possible or stock is exhausted; two passes compare remaining pips.
+
+Checkers uses forward regular moves/captures, short kings, mandatory capture,
+free choice of capture and complete multiple jumps. Crowning ends the turn.
+Movement follows [WCDF English rules](https://wcdf.net/rules/rules_of_checkers_english.pdf).
+Ludia automatically draws on three repetitions or 80 plies without capture or
+promotion; these are stated product rules, not a tournament adjudication claim.
+
+## Preserved chess architecture
 
 Static site without dependencies, compilation or external service calls. Direct-file
 opening works; the service worker requires HTTPS or localhost.
@@ -75,3 +112,13 @@ goals. Loading accepts older progress without that field; reset also removes goa
 `scripts/test-minigames.js` checks all 178 reachable positions remain solvable.
 `scripts/test-minigames-browser.cjs` covers all 12 challenges, navigation, lists,
 languages, screen sizes and offline use.
+
+## Compact application header
+
+The main header follows Memofun: a 44px app icon (32px below 650px),
+a Nunito brand title at 28px (22px on mobile), suite attribution and aligned
+utility controls. It uses an 8px vertical inset and a 6px row gap. Supporting
+copy uses regular weight; any star counter stays compact. Header language buttons, where present,
+show full names on desktop and ES/EN on mobile, with full accessible names.
+Teclatlon keeps its keyboard controls and settings; Enroca keeps its navigation
+and settings. These header styles do not change activity controls.

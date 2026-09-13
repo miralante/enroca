@@ -72,12 +72,20 @@
     document.documentElement.classList.toggle('piece-names', settings.names);
     document.title = t('app.title');
     document.querySelector('meta[name="description"]').content = t('app.description');
+    document.querySelector('.chess-navigation').setAttribute('aria-label', t('ludia.chess'));
     syncNotices();
   }
   function route() { return location.hash.slice(1).split('/'); }
   function go(hash) { if (location.hash === '#' + hash) render(); else location.hash = hash; }
   function render(focus = true) {
     clearTimeout(aiTimer); aiTimer = null;
+    window.Ludia.stop();
+    applySettings();
+    document.querySelector('.chess-navigation').hidden = !['learn','lesson','exercise','practice','practice-done','minigames','minigame','play','game'].includes(route()[0]);
+    if (window.Ludia.handle(route(), { main, settings, save, announce, go, render, confirm })) {
+      if (focus) { main.focus({ preventScroll: true }); window.scrollTo({ top: 0, behavior: 'instant' }); }
+      return;
+    }
     const [view, id, step] = route();
     document.querySelectorAll('[data-nav]').forEach(el => {
       const current = el.dataset.nav === (['lesson', 'learn', ''].includes(view) ? 'home' : ['exercise', 'practice-done', 'minigames', 'minigame'].includes(view) ? 'practice' : view === 'game' ? 'play' : view);
@@ -461,6 +469,7 @@
       case 'close-dialog': closeDialog(); break;
       case 'delete-data': confirm('settings.confirmTitle', 'settings.confirmText', 'settings.confirm', () => {
         if (!storage.reset()) { syncNotices(); announce(t('common.storageUnavailable')); return; }
+        window.Ludia.reset();
         clearTimeout(aiTimer); mini = null; miniReturn = null; game = null; practice = null; practiceReturn = false; selected = null; gameHint = null; gameMessage = '';
         progress = { lessons: [], exercises: {}, minigames: {} }; settings = { ...defaults }; applySettings(); render(); announce(t('settings.deleted'));
       }, true); break;

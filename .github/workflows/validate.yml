@@ -1,4 +1,4 @@
-name: Validate Enroca
+name: Validate Ludia
 on: [push, pull_request]
 permissions:
   contents: read

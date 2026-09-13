@@ -1,4 +1,42 @@
-# Arquitectura de Enroca
+# Arquitectura de Ludia
+
+## Plataforma de juegos
+
+Ludia transforma este proyecto de Enroca en un catálogo de ocho juegos.
+`ludia.js` atiende `#home` y `#ludia/<id>[/rules|exercises|play|match][/paso]`.
+`app.js` conserva ajustes, privacidad y las rutas originales del ajedrez.
+El ajedrez mantiene sus 14 temas, 29 ejercicios, 12 retos y partidas.
+Se conservan los cambios locales del encabezado compacto y sus notas inferiores.
+
+`games/shared.js` registra motores y ofrece azar con semilla. Los siete motores
+nuevos son puros, inmutables y utilizables desde Node. Cada juego aporta motor,
+contenido bilingüe y adaptador de interfaz. Véase [añadir juegos](anadir-juegos.md).
+Se añaden 58 reglas y 58 ejercicios al contenido del ajedrez.
+
+Las claves nuevas son `enroca:ludia-progress` y `enroca:ludia-sessions`.
+Guardan reglas vistas y ejercicios resueltos mediante identificadores estables.
+Cada juego tiene una partida independiente: versión, opciones, semilla y acciones
+legales. Al recuperar, el motor repite las acciones; no confía en un tablero
+serializado. Los historiales corruptos o ilegales no se recuperan. Borrar datos
+limpia las claves antiguas y nuevas de la app, respetando las de otras apps.
+Contra Ludia, deshacer vuelve al turno humano anterior. Entre dos personas,
+retrocede una acción. Recargar o deshacer Tetris detiene la caída automática.
+
+Variantes: los barcos pueden tocarse, hay un disparo por turno incluso al acertar
+y flotas 3/2/2 en 6 × 6 o 4/3/2/2 en 8 × 8. Sudoku genera soluciones únicas en
+recuadros de 2 × 2 o 2 × 3. Tetris usa bolsas de siete piezas y ajustes limitados
+al girar, sin afirmar conformidad con sistemas de torneos. Dominó usa doble seis,
+siete fichas por persona, salida libre del jugador 1 y robo hasta poder jugar o
+agotar el montón. Dos pases comparan los puntos restantes.
+
+Damas usa avance y captura frontal de fichas normales, damas de paso corto,
+captura obligatoria, elección libre de captura y saltos múltiples completos.
+Coronar acaba el turno. El movimiento sigue las
+[reglas inglesas WCDF](https://wcdf.net/rules/rules_of_checkers_english.pdf).
+Ludia aplica empate automático por tres repeticiones o 80 medias jugadas sin
+captura ni corona. Son reglas declaradas del producto, no arbitraje de torneos.
+
+## Arquitectura del ajedrez conservado
 
 Sitio estático sin dependencias, compilación ni llamadas a servicios externos.
 Funciona abierto como archivo; el service worker necesita HTTPS o localhost.
@@ -75,3 +113,14 @@ La carga admite datos anteriores sin ese campo. El borrado elimina también esas
 metas. `scripts/test-minigames.js` comprueba las 178 posiciones alcanzables y
 que todas siguen siendo resolubles. `scripts/test-minigames-browser.cjs` prueba
 los 12 retos, navegación, listas, idiomas, tamaños y uso sin conexión.
+
+## Cabecera compacta de la aplicación
+
+La cabecera principal sigue el modelo de Memofun: icono de 44px (32px por
+debajo de 650px), título Nunito de 28px (22px en móvil), atribución a la suite
+y controles alineados. Usa un margen interior vertical de 8px y separa las
+filas 6px. El texto secundario tiene peso normal y el contador de estrellas
+es compacto. Los botones de idioma de la cabecera muestran nombres completos en escritorio
+y ES/EN en móvil, con nombres accesibles completos. Teclatlon conserva sus
+controles de teclado y ajustes; Enroca conserva navegación y ajustes. Estos
+estilos de cabecera no cambian los controles de las actividades.
