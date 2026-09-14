@@ -6,8 +6,8 @@ if ('serviceWorker' in navigator) {
       return Promise.all(registrations.map(function (registration) { return registration.unregister(); }));
     })
     .then(function () {
-      window.location.replace('/?lang=es&v=20260914-2#home');
+      window.location.replace('/?lang=es&v=20260914-3#home');
     });
 } else {
-  window.location.replace('/?lang=es&v=20260914-2#home');
+  window.location.replace('/?lang=es&v=20260914-3#home');
 }
