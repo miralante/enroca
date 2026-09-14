@@ -53,7 +53,7 @@
   }
   function grid(g,s,rows,cols,interactive,cellInfo) {
     let cells='';
-    for(let r=0;r<rows;r++) { cells+='<div role="row" class="ludia-row">';
+    for(let r=0;r<rows;r++) { cells+='<div role="row" class="ludia-row" style="--cols:'+cols+'">';
       for(let c=0;c<cols;c++) {const at=r*cols+c, cell=cellInfo(at,r,c), label=t('cell',{r:r+1,c:c+1,value:cell.label || t('empty')});
         cells+=`<${interactive?'button type="button"':'span'} role="gridcell" class="ludia-cell ${cell.cls||''}" ${interactive?`data-cell="${at}" tabindex="${at===0?0:-1}" aria-label="${esc(label)}"`: `aria-label="${esc(label)}"`}>${cell.html||''}</${interactive?'button':'span'}>`;
       } cells+='</div>';
