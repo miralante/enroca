@@ -24,6 +24,9 @@ html, body { max-width: 100%; overflow-x: hidden; }
 .course-layout, .match-layout, .setup-layout, .course-visual, .match-panel { min-width: 0; }
 .ludia-board, .board-tic-tac-toe, .board-connect-four, .board-battleship, .board-sudoku,
 .board-checkers, .board-domino, .board-tetris, .match-board, .course-visual > * { max-width: 100%; }
+.ludia-board { align-content: start; grid-auto-rows: max-content; }
+.ludia-row { align-self: start; width: 100%; }
+.ludia-cell { height: auto; }
 .match-tools .button, .course-answers .button, .sudoku-tools .button, .shape-palette .button { min-width: 0; }
 @media (max-width: 650px) {
   .course-copy, .setup-panel, .match-panel { width: 100%; box-sizing: border-box; }
