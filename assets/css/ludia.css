@@ -22,12 +22,12 @@ main{max-width:1232px;padding:36px 36px 64px}.button{border-radius:14px;box-shad
   font-size: clamp(44px, 10vw, 84px);
   font-weight: 900;
   line-height: .78;
-  -webkit-text-stroke: 1.5px currentColor;
+  -webkit-text-stroke: 2px currentColor;
 }
 .board-tic-tac-toe .ludia-cell.side-1 > span { transform: scale(1.12); }
 .board-tic-tac-toe .ludia-cell.side-2 > span {
-  transform: scale(1.34);
-  -webkit-text-stroke: 2px currentColor;
+  transform: scale(1.58);
+  -webkit-text-stroke: 2.5px currentColor;
 }
 /* Decorative transforms stay inside their allocated space on tablet layouts. */
 .hero-play{overflow:clip;border-radius:0}
