@@ -29,6 +29,26 @@ main{max-width:1232px;padding:36px 36px 64px}.button{border-radius:14px;box-shad
   transform: scale(1.58);
   -webkit-text-stroke: 2.5px currentColor;
 }
+.match-help {
+  margin: 16px 0;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #faf9ff;
+}
+.match-help summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 800;
+}
+.match-help p {
+  margin: 0;
+  padding: 0 14px 14px;
+  font-size: .86rem;
+  line-height: 1.45;
+}
 /* Decorative transforms stay inside their allocated space on tablet layouts. */
 .hero-play{overflow:clip;border-radius:0}
 .step-pill { display: none; }
