@@ -18,3 +18,19 @@ main{max-width:1232px;padding:36px 36px 64px}.button{border-radius:14px;box-shad
 /* Decorative transforms stay inside their allocated space on tablet layouts. */
 .hero-play{overflow:clip;border-radius:0}
 .step-pill { display: none; }
+
+/* Responsive guardrails shared by every game screen. */
+html, body { max-width: 100%; overflow-x: hidden; }
+.course-layout, .match-layout, .setup-layout, .course-visual, .match-panel { min-width: 0; }
+.ludia-board, .board-tic-tac-toe, .board-connect-four, .board-battleship, .board-sudoku,
+.board-checkers, .board-domino, .board-tetris, .match-board, .course-visual > * { max-width: 100%; }
+.match-tools .button, .course-answers .button, .sudoku-tools .button, .shape-palette .button { min-width: 0; }
+@media (max-width: 650px) {
+  .course-copy, .setup-panel, .match-panel { width: 100%; box-sizing: border-box; }
+  .match-layout, .course-layout, .setup-layout { width: 100%; }
+  .match-board, .course-visual .ludia-board { width: min(100%, 350px); }
+  .tetris-stage { width: 100%; max-width: 330px; }
+  .domino-chain { max-width: 100%; overflow-wrap: anywhere; }
+  .match-tools { width: 100%; }
+  .match-tools .button { flex: 1 1 42%; }
+}
