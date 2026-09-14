@@ -1,6 +1,6 @@
 /* Ludia — cache-first, isolated by app name and registration scope. */
 'use strict';
-var VERSION = 'ludia-v8';
+var VERSION = 'ludia-v9';
 var ARCHIVOS = [
   "./",
   "./index.html",
@@ -71,4 +71,5 @@ self.addEventListener('fetch', function (event) {
     });
   }));
 });
+
 
