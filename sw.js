@@ -1,6 +1,6 @@
 /* Ludia — cache-first, isolated by app name and registration scope. */
 'use strict';
-var VERSION = 'ludia-v9';
+var VERSION = 'ludia-v10';
 var ARCHIVOS = [
   "./",
   "./index.html",
@@ -54,8 +54,8 @@ self.addEventListener('install', function (event) {
 });
 self.addEventListener('activate', function (event) {
   event.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (key) {
-      return key.startsWith('enroca-v') && key.endsWith(':' + SCOPE) && key !== CACHE;
+      return Promise.all(keys.filter(function (key) {
+      return (key.startsWith('enroca-v') || key.startsWith('ludia-v')) && key.endsWith(':' + SCOPE) && key !== CACHE;
     }).map(function (key) { return caches.delete(key); }));
   }).then(function () { return self.clients.claim(); }));
 });
@@ -63,8 +63,12 @@ self.addEventListener('fetch', function (event) {
   var url = new URL(event.request.url);
   if (event.request.method !== 'GET' || url.origin !== self.location.origin || !url.href.startsWith(self.registration.scope)) return;
   event.respondWith(caches.open(CACHE).then(function (cache) {
-    return cache.match(event.request, { ignoreSearch: true }).then(function (cached) {
-      return cached || fetch(event.request).catch(function () {
+    return fetch(event.request).then(function (response) {
+      if (response && response.ok) cache.put(event.request, response.clone());
+      return response;
+    }).catch(function () {
+      return cache.match(event.request, { ignoreSearch: true }).then(function (cached) {
+        if (cached) return cached;
         if (event.request.mode === 'navigate') return cache.match('./index.html');
         return new Response('', { status: 504, statusText: 'Offline' });
       });
