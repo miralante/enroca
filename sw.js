@@ -1,6 +1,6 @@
 /* Ludia — cache-first, isolated by app name and registration scope. */
 'use strict';
-var VERSION = 'enroca-v7';
+var VERSION = 'ludia-v8';
 var ARCHIVOS = [
   "./",
   "./index.html",
@@ -71,3 +71,4 @@ self.addEventListener('fetch', function (event) {
     });
   }));
 });
+
