@@ -529,6 +529,6 @@
   document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(aiTimer); sound.stop(); } else scheduleAI(); });
   applySettings(); render(false);
   if ('serviceWorker' in navigator && ['http:', 'https:'].includes(location.protocol)) {
-    navigator.serviceWorker.register('./sw.js').then(registration => registration.update()).catch(() => { /* Direct file use and unavailable SW do not prevent play. */ });
+    navigator.serviceWorker.register('./sw-v10.js').then(registration => registration.update()).catch(() => { /* Direct file use and unavailable SW do not prevent play. */ });
   }
 }());
