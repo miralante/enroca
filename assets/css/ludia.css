@@ -27,6 +27,14 @@ html, body { max-width: 100%; overflow-x: hidden; }
 .ludia-board { align-content: start; grid-auto-rows: max-content; }
 .ludia-row { align-self: start; width: 100%; }
 .ludia-cell { height: auto; }
+/* Explicit fallbacks keep grids usable in browsers that do not inherit the
+   board's custom property into nested rows. */
+.ludia-row { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.board-connect-four .ludia-row { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.board-battleship .ludia-row { grid-template-columns: repeat(10, minmax(0, 1fr)); }
+.board-sudoku .ludia-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.board-checkers .ludia-row { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+.board-tetris .ludia-row { grid-template-columns: repeat(10, minmax(0, 1fr)); }
 .match-tools .button, .course-answers .button, .sudoku-tools .button, .shape-palette .button { min-width: 0; }
 @media (max-width: 650px) {
   .course-copy, .setup-panel, .match-panel { width: 100%; box-sizing: border-box; }
