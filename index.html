@@ -131,6 +131,7 @@
   <link rel="stylesheet" href="assets/css/styles.css?v=20260914-7">
   <link rel="stylesheet" href="assets/css/ludia.css?v=20260914-7">
   <link rel="stylesheet" href="assets/css/game-boards.css?v=20260914-7">
+  <link rel="stylesheet" href="assets/css/locale-picker.css?v=ludia-v1">
   <script src="assets/js/core.js?v=20260914-7" defer></script>
   <script src="strings.es.js" defer></script>
   <script src="strings.en.js" defer></script>
@@ -158,6 +159,32 @@
   <script src="games/checkers-view.js" defer></script>
   <script src="ludia.js?v=20260914-7" defer></script>
   <script src="app.js?v=20260914-7" defer></script>
+  <!-- Locale picker config (must run BEFORE assets/js/locale-picker.js).
+       Ludia stores strings next to index.html (no per-app subdir), so
+       path: 'strings'. storageKey matches the one assets/js/i18n.js
+       (core.js) writes to localStorage. We use requiredLocales because
+       strings live inline in the strings.*.js objects (the discovery
+       fallback isn't needed). -->
+  <script>
+  window.LocalePickerConfig = {
+    /* Ludia's core.js defines STORAGE_PREFIX = 'enroca:' (legacy name
+       from when the app was called Enroca), so the locale lives at
+       'enroca:locale' in localStorage — NOT 'ludia:locale'. We mirror
+       the existing key so users who chose a language before the
+       rename keep their preference, and so core.js reads back what
+       the picker wrote. */
+    storageKey: 'enroca:locale',
+    path: null,
+    requiredLocales: ['es', 'en'],
+    defaultLocale: 'en',
+    settingsHref: '#settings',
+    legacyContrastClass: true
+    /* No onChange: core.js i18n.set(lang) updates the locale in place
+       and re-renders translations — the picker calls it via
+       App.i18n.set() automatically. */
+  };
+  </script>
+  <script src="assets/js/locale-picker.js?v=ludia-v1" defer></script>
 </head>
 <body>
   <a href="#main" class="skip-link" data-i18n="nav.skip">Ir al contenido</a>
@@ -172,7 +199,7 @@
     <nav class="top-nav" aria-label="Ludia">
       <a href="#home" data-nav="home"><span data-i18n="ludia.games">Juegos</span></a>
     </nav>
-    <div class="suite-controls"><a href="#settings" class="settings-link"><span aria-hidden="true">⚙</span><span data-i18n="nav.settings">Ajustes</span></a></div>
+    <div class="suite-controls"><div id="locale-picker"></div></div>
   </header>
   <nav class="chess-navigation" aria-label="Ajedrez" hidden><a href="#ludia/chess" data-i18n="ludia.chess">Ajedrez</a><a href="#learn" data-i18n="ludia.rules">Reglas</a><a href="#exercise/all" data-i18n="ludia.exercises">Ejercicios</a><a href="#minigames" data-nav="practice" data-i18n="nav.practice">Retos</a><a href="#play" data-nav="play" data-i18n="ludia.play">Jugar</a></nav>
   <div id="connection" class="notice" hidden data-i18n="common.offline"></div>
@@ -184,5 +211,22 @@
   <div id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
   <noscript><p class="notice">Activa JavaScript para usar Ludia. / Enable JavaScript to use Ludia.</p></noscript>
+<!-- Service-worker registration. Lazy + try/catch so older browsers
+     (or private mode where navigator.serviceWorker is unavailable)
+     silently no-op rather than throwing. Same-origin './sw.js' keeps
+     the CSP `script-src 'self'` and `worker-src 'self'` directives
+     happy. The install handler in sw.js is what pre-caches the app
+     shell listed in FILES. See CLAUDE.md §B.1 for the cache
+     contract and the bump-on-every-cached-file-change rule. -->
+<script>
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('./sw.js').catch(function (err) {
+      console.warn('[ludia] service worker registration failed:', err);
+    });
+  });
+})();
+</script>
 </body>
 </html>

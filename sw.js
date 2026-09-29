@@ -1,7 +1,7 @@
 /* Ludia — cache-first, isolated by app name and registration scope. */
 'use strict';
-var VERSION = 'ludia-v10';
-var ARCHIVOS = [
+var VERSION = 'ludia-v14';
+var FILES = [
   "./",
   "./index.html",
   "./app.js",
@@ -11,7 +11,9 @@ var ARCHIVOS = [
   "./strings.es.js",
   "./strings.en.js",
   "./assets/js/core.js",
+  "./assets/js/locale-picker.js",
   "./assets/css/styles.css",
+  "./assets/css/locale-picker.css",
   "./assets/fonts/atkinson-hyperlegible-400.woff2",
   "./assets/fonts/atkinson-hyperlegible-700.woff2",
   "./assets/fonts/nunito-variable.woff2",
@@ -49,7 +51,7 @@ var SCOPE = encodeURIComponent(self.registration.scope);
 var CACHE = VERSION + ':' + SCOPE;
 self.addEventListener('install', function (event) {
   event.waitUntil(caches.open(CACHE).then(function (cache) {
-    return cache.addAll(ARCHIVOS.map(function (file) { return new Request(file, { cache: 'reload' }); }));
+    return cache.addAll(FILES.map(function (file) { return new Request(file, { cache: 'reload' }); }));
   }));
 });
 self.addEventListener('activate', function (event) {
@@ -75,5 +77,3 @@ self.addEventListener('fetch', function (event) {
     });
   }));
 });
-
-

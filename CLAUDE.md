@@ -16,6 +16,8 @@ and new-sibling recipe. This file is the operational source of truth.
 - All visible strings and curriculum text have Spanish and English parity.
 - Run `node scripts/check.js`; it includes engine and content regression tests.
 - Run `node scripts/check-version-bump.js` when changing cached files.
+- Before pushing, run `npm run test:ui`, `node scripts/smoke-sw.js`, and
+  `node scripts/check-version-bump.js`; do not push if any required check fails.
 - Increment `sw.js` VERSION (`enroca-vN`) whenever a shipped file changes after release.
 - Use only `enroca:` localStorage keys. Never clear other apps' data.
 - Keep this sibling independently shippable: no runtime imports from siblings.

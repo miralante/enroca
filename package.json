@@ -1,0 +1,11 @@
+{
+    "name":  "enroca-ui-tests",
+    "private":  true,
+    "scripts":  {
+                    "test:ui":  "node scripts/ui-smoke.js",
+                    "test:sw":  "node scripts/smoke-sw.js"
+                },
+    "devDependencies":  {
+
+                        }
+}

@@ -36,26 +36,35 @@
     active: new Set(),
     stop() { for (const node of this.active) { try { node.stop(); } catch (_) {} } this.active.clear(); },
     async play(kind = 'move') {
-      if (!this.enabled || document.hidden) return;
+      const soundKind = kind === 'error' ? 'error' : 'success';
+      let shared = null;
+      try {
+        const saved = JSON.parse(localStorage.getItem('miralante:sounds') || 'null');
+        if (saved && typeof saved[soundKind] === 'boolean') shared = saved[soundKind];
+      } catch (_) {}
+      if ((shared === null ? !this.enabled : !shared) || document.hidden) return;
       try {
         const Audio = window.AudioContext || window.webkitAudioContext;
         if (!Audio) return;
         this.context ||= new Audio();
         if (this.context.state === 'suspended') await this.context.resume();
-        if (!this.enabled || document.hidden) return;
+        if (document.hidden) return;
         this.stop();
         const now = this.context.currentTime;
-        const notes = kind === 'success' ? [523.25, 659.25] : [330];
+        const success = kind === 'success';
+        const error = kind === 'error';
+        const notes = success ? [523.25, 659.25] : [error ? 180 : 330];
         notes.forEach((hz, i) => {
           const oscillator = this.context.createOscillator(), gain = this.context.createGain();
-          const begin = now + i * 0.09;
-          oscillator.type = 'sine'; oscillator.frequency.value = hz;
-          gain.gain.setValueAtTime(0, begin); gain.gain.linearRampToValueAtTime(0.07, begin + 0.012);
-          gain.gain.exponentialRampToValueAtTime(0.001, begin + 0.09);
+          const begin = now + (success ? i * 0.12 : 0);
+          const duration = success ? (i === 0 ? 0.15 : 0.2) : (error ? 0.12 : 0.1);
+          oscillator.type = error ? 'triangle' : 'sine'; oscillator.frequency.value = hz;
+          gain.gain.setValueAtTime(0.12, begin);
+          gain.gain.exponentialRampToValueAtTime(0.001, begin + duration);
           oscillator.connect(gain); gain.connect(this.context.destination);
           this.active.add(oscillator);
           oscillator.onended = () => { this.active.delete(oscillator); oscillator.disconnect(); gain.disconnect(); };
-          oscillator.start(begin); oscillator.stop(begin + 0.1);
+          oscillator.start(begin); oscillator.stop(begin + duration);
         });
       } catch (_) { /* Sound is optional; a blocked audio device never prevents play. */ }
     }

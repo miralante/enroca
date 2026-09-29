@@ -94,7 +94,7 @@
   function renderLocal(focusSelector) { const old=document.activeElement; const selector=focusSelector || (old?.dataset.ludia?`[data-ludia="${old.dataset.ludia}"]`:null); ctx.render(false); if(selector)ctx.main.querySelector(selector)?.focus({preventScroll:true}); }
   function commit(action) {
     if(!active) return false; const g=G.get(active.id), before=active.states.at(-1), next=g.move(before,action);
-    if(!next) { message=t('invalid'); ctx.announce(message); renderLocal(); return false; }
+    if(!next) { message=t('invalid'); window.App.sound.play('error'); ctx.announce(message); renderLocal(); return false; }
     active.actions.push(G.copy(action)); active.states.push(next); hintAction=null; selected=null; message=''; persist();
     if(g.status(next).ended) { record(g.id,'matches','finished'); window.App.sound.play('success'); } else window.App.sound.play('move');
     renderLocal(action.at!==undefined?`[data-cell="${action.at}"]`:null); ctx.announce(window.LudiaStatus?.[g.id]?.(next,api)||statusText(g,next)); return true;

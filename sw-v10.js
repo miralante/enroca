@@ -1,7 +1,7 @@
 /* Ludia — cache-first, isolated by app name and registration scope. */
 'use strict';
 var VERSION = 'ludia-v11';
-var ARCHIVOS = [
+var FILES = [
   "./",
   "./index.html",
   "./app.js",
@@ -49,7 +49,7 @@ var SCOPE = encodeURIComponent(self.registration.scope);
 var CACHE = VERSION + ':' + SCOPE;
 self.addEventListener('install', function (event) {
   event.waitUntil(caches.open(CACHE).then(function (cache) {
-    return cache.addAll(ARCHIVOS.map(function (file) { return new Request(file, { cache: 'reload' }); }));
+    return cache.addAll(FILES.map(function (file) { return new Request(file, { cache: 'reload' }); }));
   }));
 });
 self.addEventListener('activate', function (event) {

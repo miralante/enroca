@@ -14,7 +14,7 @@
   }
   const queryLang = new URLSearchParams(location.search).get('lang');
   if (['es', 'en'].includes(queryLang)) settings.lang = queryLang;
-  else if (!storedSettings || !['es', 'en'].includes(storedSettings.lang)) settings.lang = (navigator.languages || [navigator.language]).some(l => l && l.startsWith('es')) ? 'es' : (navigator.language || '').startsWith('en') ? 'en' : 'es';
+  else if (!storedSettings || !['es', 'en'].includes(storedSettings.lang)) settings.lang = (navigator.languages || [navigator.language]).some(l => l && l.startsWith('es')) ? 'es' : (navigator.language || '').startsWith('en') ? 'en' : 'en';
   let progress = { lessons: [], exercises: {}, minigames: {} };
   const savedProgress = storage.read('progress', null);
   if (savedProgress && typeof savedProgress === 'object') {
@@ -218,7 +218,7 @@
     const activeOption = document.activeElement?.dataset.answer;
     const activeSquare = document.activeElement?.dataset.square;
     render(false); announce(practice.message);
-    if (correct) sound.play('success');
+    sound.play(correct ? 'success' : 'error');
     if (correct) main.querySelector('[data-action="next-exercise"]').focus();
     else if (activeOption !== undefined) main.querySelector(`[data-answer="${activeOption}"]`)?.focus();
     else if (activeSquare !== undefined) main.querySelector(`[data-square="${activeSquare}"]`)?.focus();
@@ -333,7 +333,8 @@
   }
   function commitMove(requested, human = true) {
     const before = game.states.at(-1), result = C.play(before, requested);
-    if (!result || gameStatus().ended) return;
+    if (!result) { sound.play('error'); return; }
+    if (gameStatus().ended) return;
     game.moves.push(result.move); game.states.push(result.state); game.keys.push(C.positionKey(result.state));
     selected = null; gameHint = null; gameMessage = ''; saveGame();
     updateGame(result.move.to, human);
