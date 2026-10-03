@@ -491,6 +491,15 @@ async function exerciseFullFunctionality(page, route) {
   return 0;
 }
 
+// Waits for finite CSS transitions/animations (e.g. the settings drawer
+// sliding in or out) so a control is not clicked while it moves offscreen.
+async function waitForMotion(page) {
+  await page.evaluate(() => Promise.all(document.getAnimations()
+    .filter(animation => animation.effect &&
+      animation.effect.getComputedTiming().endTime !== Infinity)
+    .map(animation => animation.finished.catch(() => {})))).catch(() => {});
+}
+
 async function exerciseControls(page) {
   const seen = new Set();
   let actions = 0;
@@ -533,6 +542,7 @@ async function exerciseControls(page) {
         else await locator.click({ timeout: 2000, force: true });
         actions += 1;
         await page.waitForTimeout(25);
+        await waitForMotion(page);
       } catch (error) {
         if (await locator.isVisible().catch(() => false)) {
           throw new Error('No se pudo activar ' + control.tag + '#' +
