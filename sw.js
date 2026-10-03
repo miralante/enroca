@@ -1,6 +1,6 @@
 /* Ludia — cache-first, isolated by app name and registration scope. */
 'use strict';
-var VERSION = 'ludia-v14';
+var VERSION = 'ludia-v15';
 var FILES = [
   "./",
   "./index.html",
@@ -12,6 +12,7 @@ var FILES = [
   "./strings.en.js",
   "./assets/js/core.js",
   "./assets/js/locale-picker.js",
+  "./assets/js/achievements.js",
   "./assets/css/styles.css",
   "./assets/css/locale-picker.css",
   "./assets/fonts/atkinson-hyperlegible-400.woff2",

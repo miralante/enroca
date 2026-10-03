@@ -129,7 +129,7 @@
   <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="assets/css/styles.css?v=20260914-7">
-  <link rel="stylesheet" href="assets/css/ludia.css?v=20260914-7">
+  <link rel="stylesheet" href="assets/css/ludia.css?v=20261003-1">
   <link rel="stylesheet" href="assets/css/game-boards.css?v=20260914-7">
   <link rel="stylesheet" href="assets/css/locale-picker.css?v=ludia-v1">
   <script src="assets/js/core.js?v=20260914-7" defer></script>
@@ -153,12 +153,13 @@
   <script src="games/checkers-content.js" defer></script>
   <script src="games/ui-strings.js" defer></script>
   <script src="games/views.js" defer></script>
+  <script src="assets/js/achievements.js?v=20261003-1" defer></script>
   <script src="games/sudoku-view.js" defer></script>
   <script src="games/tetris-view.js" defer></script>
   <script src="games/domino-view.js" defer></script>
   <script src="games/checkers-view.js" defer></script>
-  <script src="ludia.js?v=20260914-7" defer></script>
-  <script src="app.js?v=20260914-7" defer></script>
+  <script src="ludia.js?v=20261003-1" defer></script>
+  <script src="app.js?v=20261003-1" defer></script>
   <!-- Locale picker config (must run BEFORE assets/js/locale-picker.js).
        Ludia stores strings next to index.html (no per-app subdir), so
        path: 'strings'. storageKey matches the one assets/js/i18n.js
@@ -206,7 +207,7 @@
   <div id="storage-notice" class="notice" hidden data-i18n="common.storageUnavailable"></div>
   <main id="main" tabindex="-1"></main>
   <footer class="site-footer">
-    <a href="#privacy" data-i18n="privacy.link">Privacidad</a>
+    <div><a href="#about" data-i18n="about.link">Sobre la app</a><a href="#privacy" data-i18n="privacy.link">Privacidad</a></div>
   </footer>
   <div id="announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
   <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
