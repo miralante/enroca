@@ -22,7 +22,7 @@ const MIME_TYPES = {
 };
 const EXTRA_HASH_ROUTES = {
   enroca: ['#home', '#settings', '#learn', '#exercise/all', '#minigames',
-    '#play', '#privacy',
+    '#play', '#privacy', '#about',
     '#minigame/rook-flag', '#minigame/bishop-flag', '#minigame/knight-flag',
     '#minigame/pawn-flag', '#minigame/rook-path', '#minigame/bishop-path',
     '#minigame/knight-path', '#minigame/pawn-capture', '#minigame/king-step',
@@ -432,6 +432,12 @@ async function exerciseEnroca(page, route) {
       }
       await clickFirstVisible(page, '[data-ludia="hint"], [data-ludia="undo"]');
     }
+  } else if (route.endsWith('#about')) {
+    assert.equal(await page.locator('.achievements-grid .achievement-badge').count(), 6,
+      'About the app must list six achievements');
+    assert.equal(await page.locator('.site-footer a').first().getAttribute('href'), '#about',
+      'About the app must be the first footer link');
+    actions += 1;
   } else if (route.includes('/minigame/')) {
     actions += await answerVisibleQuestions(page, 16);
     await clickFirstVisible(page, '[data-action="next"], [data-action="restart"]');

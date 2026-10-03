@@ -1,6 +1,6 @@
 (function () {
   'use strict';
-  const { i18n, storage, sound } = window.App;
+  const { i18n, storage, sound, achievements } = window.App;
   const C = window.EnrocaChess, lessons = window.EnrocaLessons, M = window.EnrocaMini;
   const main = document.getElementById('main'), dialog = document.getElementById('dialog');
   const t = (key, args) => i18n.t(key, args);
@@ -103,6 +103,7 @@
       case 'game': main.innerHTML = game ? renderGame() : renderPlay(); scheduleAI(); break;
       case 'settings': main.innerHTML = renderSettings(); break;
       case 'privacy': main.innerHTML = renderPrivacy(); break;
+      case 'about': main.innerHTML = renderAbout(); break;
       default: main.innerHTML = renderHome();
     }
     applySettings();
@@ -213,8 +214,9 @@
       const q = practice.questions[practice.at], supported = practice.hinted || practice.corrected;
       if (progress.exercises[q.id] !== 'independent') progress.exercises[q.id] = supported ? 'supported' : 'independent';
       save('progress', progress);
+      achievements.solved(!practice.corrected);
       practice.message = t('practice.right');
-    } else { practice.corrected = true; practice.message = t('practice.again'); }
+    } else { practice.corrected = true; achievements.missed(); practice.message = t('practice.again'); }
     const activeOption = document.activeElement?.dataset.answer;
     const activeSquare = document.activeElement?.dataset.square;
     render(false); announce(practice.message);
@@ -272,7 +274,7 @@
     mini.message = t(next.target > state.target ? 'mini.nextFlag' : 'mini.moved', { square: C.square(at) });
     if (next.done) {
       if (progress.minigames[state.id] !== 'independent') progress.minigames[state.id] = mini.usedHelp ? 'supported' : 'independent';
-      save('progress', progress);
+      save('progress', progress); achievements.sync();
     }
     refreshMini(at);
     if (next.done) main.querySelector('[data-mini-next]')?.focus();
@@ -339,9 +341,15 @@
     selected = null; gameHint = null; gameMessage = ''; saveGame();
     updateGame(result.move.to, human);
     const status = gameStatus();
+    if (status.ended) gameFinished(status);
     announce(moveText(result.move, before) + ' ' + (status.ended ? statusText(status) : status.check ? t('play.check') : t('play.' + (result.state.turn === 'w' ? 'whiteTurn' : 'blackTurn'))));
     sound.play('move');
     scheduleAI();
+  }
+  function gameFinished(status) {
+    window.Ludia.record('chess', 'matches', 'finished');
+    if (status.reason === 'mate' && status.winner === 'w' && game.partner === 'computer') achievements.achieve('champion');
+    achievements.sync();
   }
   function scheduleAI() {
     clearTimeout(aiTimer); aiTimer = null;
@@ -373,6 +381,10 @@
   }
   function renderSettings() {
     return `${breadcrumb()}<section class="settings-panel"><div class="page-intro"><h1>${esc(t('settings.title'))}</h1></div><label class="setting"><span>${esc(t('settings.language'))}</span><select data-setting="lang"><option value="es" ${settings.lang === 'es' ? 'selected' : ''}>Español</option><option value="en" ${settings.lang === 'en' ? 'selected' : ''}>English</option></select></label><label class="setting"><span>${esc(t('settings.text'))}</span><select data-setting="size"><option value="regular" ${settings.size === 'regular' ? 'selected' : ''}>${esc(t('settings.regular'))}</option><option value="large" ${settings.size === 'large' ? 'selected' : ''}>${esc(t('settings.large'))}</option></select></label><label class="setting"><span>${esc(t('settings.contrast'))}</span><input type="checkbox" data-setting="contrast" ${settings.contrast ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.pieceNames'))}</span><input type="checkbox" data-setting="names" ${settings.names ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.sounds'))}</span><input type="checkbox" data-setting="sounds" ${settings.sounds ? 'checked' : ''}></label><div class="settings-data"><h2>${esc(t('settings.data'))}</h2>${button('settings.delete', 'delete-data', 'secondary')}</div></section>`;
+  }
+  function renderAbout() {
+    achievements.sync();
+    return `${breadcrumb()}<section class="settings-panel about-panel"><div class="page-intro"><h1>${esc(t('about.title'))}</h1><p>${esc(t('about.intro'))}</p></div><section class="achievements-panel" aria-labelledby="achievements-title"><h2 id="achievements-title">${esc(t('achievements.title'))}</h2><p>${esc(t('achievements.hint'))}</p><p class="achievements-count">${esc(t('achievements.count', { n: achievements.count(), total: achievements.list.length }))}</p><ul class="achievements-grid">${achievements.html()}</ul></section><p class="local-note">${esc(t('achievements.local'))}</p></section>`;
   }
   function renderPrivacy() {
     return `${breadcrumb()}<section class="settings-panel"><h1>${esc(t('privacy.title'))}</h1>${['intro', 'storage', 'tracking', 'reset'].map(key => `<p>${esc(t('privacy.' + key))}</p>`).join('')}${link('nav.settings', 'settings')}</section>`;
@@ -465,12 +477,12 @@
       case 'new-game': go('play'); break;
       case 'claim': {
         const claim = gameStatus().claim;
-        if (claim) { game.claimed = claim; saveGame(); updateGame(); announce(statusText(gameStatus())); } break;
+        if (claim) { game.claimed = claim; saveGame(); gameFinished(gameStatus()); updateGame(); announce(statusText(gameStatus())); } break;
       }
       case 'close-dialog': closeDialog(); break;
       case 'delete-data': confirm('settings.confirmTitle', 'settings.confirmText', 'settings.confirm', () => {
         if (!storage.reset()) { syncNotices(); announce(t('common.storageUnavailable')); return; }
-        window.Ludia.reset();
+        window.Ludia.reset(); achievements.reset();
         clearTimeout(aiTimer); mini = null; miniReturn = null; game = null; practice = null; practiceReturn = false; selected = null; gameHint = null; gameMessage = '';
         progress = { lessons: [], exercises: {}, minigames: {} }; settings = { ...defaults }; applySettings(); render(); announce(t('settings.deleted'));
       }, true); break;
@@ -528,6 +540,7 @@
   window.addEventListener('offline', syncNotices); window.addEventListener('online', syncNotices);
   window.addEventListener('pagehide', () => { clearTimeout(aiTimer); sound.stop(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(aiTimer); sound.stop(); } else scheduleAI(); });
+  achievements.sync();
   applySettings(); render(false);
   if ('serviceWorker' in navigator && ['http:', 'https:'].includes(location.protocol)) {
     navigator.serviceWorker.register('./sw-v10.js').then(registration => registration.update()).catch(() => { /* Direct file use and unavailable SW do not prevent play. */ });
