@@ -38,10 +38,12 @@
     async play(kind = 'move') {
       const soundKind = kind === 'error' ? 'error' : 'success';
       let shared = null;
-      try {
-        const saved = JSON.parse(localStorage.getItem('miralante:sounds') || 'null');
-        if (saved && typeof saved[soundKind] === 'boolean') shared = saved[soundKind];
-      } catch (_) {}
+      if (!(window.LocalePickerConfig && window.LocalePickerConfig.soundSettings === false)) {
+        try {
+          const saved = JSON.parse(localStorage.getItem('miralante:sounds') || 'null');
+          if (saved && typeof saved[soundKind] === 'boolean') shared = saved[soundKind];
+        } catch (_) {}
+      }
       if ((shared === null ? !this.enabled : !shared) || document.hidden) return;
       try {
         const Audio = window.AudioContext || window.webkitAudioContext;

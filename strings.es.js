@@ -218,6 +218,7 @@ window.App.i18n.register('es', {
   "learn.other": "Inicio",
   "practice.title": "Vamos a probar lo aprendido.",
   "practice.hint": "Pista",
+  "practice.understood": "Entendido",
   "practice.lesson": "Ver de nuevo",
   "practice.return": "Volver",
   "practice.again": "Prueba otra casilla u opción.",

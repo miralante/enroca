@@ -218,6 +218,7 @@ window.App.i18n.register('en', {
   "learn.other": "Home",
   "practice.title": "Let’s try what you learned.",
   "practice.hint": "Hint",
+  "practice.understood": "Understood",
   "practice.lesson": "See again",
   "practice.return": "Back",
   "practice.again": "Try another square or option.",

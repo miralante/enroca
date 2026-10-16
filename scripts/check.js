@@ -65,7 +65,17 @@ check(swEntries, 'Missing SW precache manifest');
 const entries = [...swEntries[1].matchAll(/"(.+?)"/g)].map(m => m[1]);
 check(/var VERSION = '(?:ludia|enroca)-v\d+'/.test(sw), 'Missing semantic SW version');
 for (const entry of entries) check(entry === './' || exists(entry.slice(2)), 'Missing precache file ' + entry);
-for (const file of files.filter(f => /^(?:index\.html|app\.js|ludia\.js|games\/|chess\.js|minigames\.js|data\.js|strings\..*\.js|manifest\.json|assets\/)/.test(f))) check(entries.includes('./' + file), 'Uncached runtime asset ' + file);
+/* The landing page is precached under "./", NOT "./index.html".
+   Cloudflare answers "/index.html" with a 307 to "/", so precaching the
+   .html form stores the followed response under that key with
+   `redirected: true`, and Chrome refuses to serve such an entry to a
+   top-level navigation ("Response served by service worker has
+   redirections"). This check used to demand the .html form and so
+   required the poison; see the deRedirect() comment in sw.js. */
+for (const file of files.filter(f => /^(?:index\.html|app\.js|ludia\.js|games\/|chess\.js|minigames\.js|data\.js|strings\..*\.js|manifest\.json|assets\/)/.test(f))) {
+  const wanted = file === 'index.html' ? './' : './' + file;
+  check(entries.includes(wanted), 'Uncached runtime asset ' + wanted);
+}
 for (const match of html.matchAll(/(?:src|href)="([^"#?]+)"/g)) if (!/^(https?:|mailto:)/.test(match[1])) check(exists(match[1].split('?')[0]), 'Missing HTML asset ' + match[1]);
 check(html.includes('charset="UTF-8"') && html.includes('width=device-width, initial-scale=1'), 'Missing UTF-8/viewport');
 check((html.match(/name="DC\./g) || []).length >= 7, 'Missing Dublin Core');
@@ -92,6 +102,33 @@ for (const file of files.filter(f => f.endsWith('.md'))) {
 const manifest = JSON.parse(read('manifest.json'));
 manifest.icons.forEach(icon => check(exists(icon.src), 'Missing install icon ' + icon.src));
 check(manifest.scope === './' && manifest.start_url === './', 'PWA must support static subdirectories');
+/* No executable inline <script> in any HTML page.
+
+   The production CSP is `script-src 'self'` with no 'unsafe-inline' and no
+   nonce/hash, so an inline <script> is dropped by the browser at runtime:
+   no build error, no lint error, no failed test — the code simply does not
+   run in production while working perfectly on a preview server that sends
+   no CSP. That is not hypothetical: an inline `window.LocalePickerConfig`
+   shipped that way in this suite, and the picker fell back to its own
+   defaults and rendered a second settings gear inside the app's own
+   settings drawer. The same mistake disabled the service worker.
+
+   Non-executable data blocks (`<script type="application/ld+json">`, the
+   JSON-LD in index.html) are allowed: CSP does not apply to them. */
+const INLINE_DATA_TYPE = /^(application\/ld\+json|application\/json|text\/json|text\/template)\s*$/i;
+for (const file of files.filter(f => /\.html?$/.test(f))) {
+  // Blank out HTML comments first (keeping the newlines, so line numbers
+  // stay exact): prose in a comment is allowed to mention `<script>`.
+  const scannable = read(file).replace(/<!--[\s\S]*?-->/g, c => c.replace(/[^\n]/g, ' '));
+  for (const m of scannable.matchAll(/<script\b([^>]*)>/gi)) {
+    if (/\ssrc\s*=/i.test(m[1])) continue; // external: allowed
+    const type = (m[1].match(/\stype\s*=\s*["']?([^"'\s>]+)/i) || [])[1] || '';
+    if (type && INLINE_DATA_TYPE.test(type)) continue; // data block: not executed
+    const line = scannable.slice(0, m.index).split('\n').length;
+    check(false, file + ':' + line + ' <script>' + (type ? ' type="' + type + '"' : '') +
+      " is inline and will not run in production (CSP script-src 'self') - move it to an external .js file");
+  }
+}
 if (failures.length) { console.error(failures.join('\n')); process.exit(1); }
 console.log('Structure/i18n/cache: ' + count + ' checks passed.');
 execFileSync(process.execPath, [path.join(__dirname, 'test-chess.js')], { stdio: 'inherit' });

@@ -48,6 +48,7 @@ const EXTRA_HASH_ROUTES = {
   sinonimia: ['#/es/', '#/es/juego', '#/es/juego/palabra',
     '#/es/juego/frase', '#/en/', '#/en/juego'],
 };
+EXTRA_HASH_ROUTES.ludia = EXTRA_HASH_ROUTES.enroca;
 
 function walk(dir, relative) {
   const result = [];
@@ -147,7 +148,29 @@ async function waitForApp(page) {
   assert.ok((await main.innerText().catch(() => '')).trim(), 'El contenedor principal está vacío');
 }
 
-function languageLocator(page, language) {
+/* El desplegable compartido es un panel que se abre y se cierra, asi que
+   el helper tiene que abrirlo y devolver la opcion ya resuelta: un locator
+   perezoso mas un guard de isVisible se habria saltado el ejercicio
+   entero en silencio. Los cinco dialectos de dos botones se quedan como
+   respaldo para una pagina que aun los lleve. */
+async function languageLocator(page, language) {
+  const btn = page.locator('#locale-picker .locale-picker-btn');
+  if (await btn.count()) {
+    /* Con `languageInDrawer` el desplegable vive DENTRO del cajon, asi
+       que no siempre esta a la vista. No basta con abrirlo una vez al
+       principio: `App.i18n.setLocale()` hace `location.reload()`, y al
+       recargar el cajon vuelve a cerrarse. Se abre aqui, justo antes de
+       pulsar, que es cuando puede hacer falta. El cierre lo hace
+       `exerciseLanguages()` en su `finally`. */
+    const drawer = page.locator('#accessibility-settings');
+    if (await drawer.count() && !await drawer.isVisible().catch(() => false)) {
+      await page.locator('.locale-settings-trigger').click();
+      await drawer.waitFor({ state: 'visible', timeout: 5000 });
+    }
+    const panel = page.locator('#locale-picker .locale-picker-panel');
+    if (!await panel.isVisible().catch(() => false)) await btn.click();
+    return panel.locator('li[data-locale="' + language + '"]');
+  }
   return page.locator([
     'button[data-locale="' + language + '"]:visible',
     'button[data-lang="' + language + '"]:visible',
@@ -157,32 +180,58 @@ function languageLocator(page, language) {
   ].join(', ')).first();
 }
 
+/* El desplegable es la primera fila del cajón de ajustes, asi que abrir el
+   ⚙️ es parte del ejercicio de idioma —y cerrarlo tambien: el backdrop se
+   queda encima y las tres funciones que van despues en runRoute() chocan
+   contra el, con un fallo que aparece lejos de su causa. */
+async function closeSettingsDrawer(page) {
+  const drawer = page.locator('#accessibility-settings');
+  if (!await drawer.count() || !await drawer.isVisible().catch(() => false)) return;
+  await drawer.locator('[data-settings-close]').click().catch(() => {});
+  await drawer.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
+}
+
 async function languageIsActive(page, button, language) {
   const lang = (await page.locator('html').getAttribute('lang')) || '';
   if (lang.toLowerCase().startsWith(language)) return true;
   if (await button.getAttribute('aria-pressed') === 'true') return true;
+  /* El desplegable marca la opcion activa con aria-selected, no aria-pressed. */
+  if (await button.getAttribute('aria-selected') === 'true') return true;
   return /\b(active|activo|selected|seleccionado)\b/.test(
     (await button.getAttribute('class')) || '');
 }
 
 async function exerciseLanguages(page) {
-  const en = languageLocator(page, 'en');
-  const es = languageLocator(page, 'es');
-  if (!await en.count() || !await en.isVisible().catch(() => false)) return;
-  const before = await page.locator('main, #app, #contenido, #main, .container, body').first()
-    .innerText().catch(() => '');
-  await en.click();
-  await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
-  await page.waitForTimeout(SETTLE_MS);
-  const after = await page.locator('main, #app, #contenido, #main, .container, body').first()
-    .innerText().catch(() => '');
-  assert.ok(await languageIsActive(page, en, 'en') || before !== after,
-    'El selector no activa English');
-  if (await es.count() && await es.isVisible().catch(() => false)) {
-    await es.click();
+  /* Abrir el ⚙️ es cosa de `languageLocator()`, que es quien lo necesita y
+     quien sabe si hace falta: entre una llamada y otra la app puede
+     recargar y cerrarlo. Aquí solo se cuenta si existe, para poder
+     devolverlo a su sitio al terminar con el `finally` de abajo. */
+  const hasDrawer = await page.locator('#accessibility-settings').count();
+  try {
+    const en = await languageLocator(page, 'en');
+    if (!await en.count() || !await en.isVisible().catch(() => false)) return;
+    const before = await page.locator('main, #app, #contenido, #main, .container, body').first()
+      .innerText().catch(() => '');
+    await en.click();
     await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
     await page.waitForTimeout(SETTLE_MS);
-    assert.ok(await languageIsActive(page, es, 'es'), 'El selector no vuelve a Español');
+    const after = await page.locator('main, #app, #contenido, #main, .container, body').first()
+      .innerText().catch(() => '');
+    /* Se vuelve a pedir la opcion: el panel se cierra al elegir, asi que la
+       de antes ya no es visible. */
+    const enAgain = await languageLocator(page, 'en');
+    assert.ok(await languageIsActive(page, enAgain, 'en') || before !== after,
+      'El selector no activa English');
+    const es = await languageLocator(page, 'es');
+    if (await es.count() && await es.isVisible().catch(() => false)) {
+      await es.click();
+      await page.waitForLoadState('domcontentloaded', { timeout: 3000 }).catch(() => {});
+      await page.waitForTimeout(SETTLE_MS);
+      const esAgain = await languageLocator(page, 'es');
+      assert.ok(await languageIsActive(page, esAgain, 'es'), 'El selector no vuelve a Español');
+    }
+  } finally {
+    if (hasDrawer) await closeSettingsDrawer(page);
   }
 }
 
@@ -215,6 +264,19 @@ async function exerciseSoundSettings(browser, baseUrl) {
   });
   const page = await context.newPage();
   try {
+    await page.addInitScript(() => {
+      window.__settingsTestTones = 0;
+      window.AudioContext = class {
+        constructor() { this.currentTime = 0; this.destination = {}; }
+        createOscillator() {
+          window.__settingsTestTones++;
+          return { frequency: { value: 0 }, connect() {}, start() {}, stop() {} };
+        }
+        createGain() {
+          return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} };
+        }
+      };
+    });
     await page.addInitScript(() => localStorage.clear());
     await page.goto(baseUrl + '/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
     await page.locator('.locale-settings-trigger').click();
@@ -227,6 +289,335 @@ async function exerciseSoundSettings(browser, baseUrl) {
     await error.check();
     assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('miralante:sounds'))),
       { success: false, error: true }, 'Los sonidos deben guardarse en la configuración común');
+    const audio = await page.evaluate(async () => {
+      let playSuccess, playError;
+      if (window.App && window.App.feedback) {
+        playSuccess = () => window.App.feedback.success();
+        playError = () => window.App.feedback.encourage();
+      } else if (window.App && window.App.sound) {
+        playSuccess = () => window.App.sound.play('success');
+        playError = () => window.App.sound.play('error');
+      } else {
+        return null;
+      }
+      await playSuccess();
+      await new Promise(resolve => setTimeout(resolve, 250));
+      const tonesWithSuccessMuted = window.__settingsTestTones;
+      await playError();
+      await new Promise(resolve => setTimeout(resolve, 80));
+      return { tonesWithSuccessMuted, tonesWithErrorEnabled: window.__settingsTestTones };
+    });
+    if (audio) {
+      assert.strictEqual(audio.tonesWithSuccessMuted, 0,
+        'El interruptor debe silenciar el sonido de acierto real de la app');
+      assert.ok(audio.tonesWithErrorEnabled > 0,
+        'El interruptor debe habilitar el sonido de error real de la app');
+    }
+  } finally {
+    await page.close().catch(() => {});
+    await context.close().catch(() => {});
+  }
+}
+
+async function exerciseFontSizeSettings(browser, baseUrl) {
+  const nativePrefs = {
+    calculia: { fontSize: 'muygrande' },
+    memofun: { textSize: 'extraLarge' },
+    okeymoney: { textSize: 'extraLarge' },
+    routime: { tamanoLetra: 'muygrande' },
+  }[APP];
+  const context = await browser.newContext({ serviceWorkers: 'block', viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  try {
+    await page.addInitScript(({ app, prefs }) => {
+      if (!sessionStorage.getItem('__font_size_test_initialized')) {
+        localStorage.clear();
+        if (prefs) localStorage.setItem(app + ':prefs', JSON.stringify(prefs));
+        sessionStorage.setItem('__font_size_test_initialized', 'true');
+      }
+    }, { app: APP, prefs: nativePrefs });
+    await page.goto(baseUrl + '/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+    await page.locator('.locale-settings-trigger').waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
+    const scaleVariable = APP === 'calculia' || APP === 'routime' ? '--escala-texto' : '--text-scale';
+    const readScale = () => page.evaluate(variable =>
+      parseFloat(getComputedStyle(document.documentElement).getPropertyValue(variable)), scaleVariable);
+    if (nativePrefs) {
+      assert.strictEqual(await readScale(), 1.3,
+        'La preferencia de tamaño guardada en la app debe aplicarse al cargar');
+    }
+    const fontSizeBefore = await page.evaluate(() => parseFloat(getComputedStyle(document.body).fontSize));
+
+    await page.locator('.locale-settings-trigger').click();
+    await page.locator('[data-settings-size="large"]').click();
+    assert.strictEqual(await readScale(), 1.15,
+      'El tamaño elegido debe cambiar la escala tipográfica visible de la app');
+    const fontSizeAfter = await page.evaluate(() => parseFloat(getComputedStyle(document.body).fontSize));
+    assert.notStrictEqual(fontSizeAfter, fontSizeBefore,
+      'El tamaño elegido debe modificar el tamaño calculado del texto de la app');
+    assert.strictEqual(await page.locator('[data-settings-size="large"]').getAttribute('aria-pressed'), 'true');
+    const settingsKey = APP === 'ludia' ? 'enroca:locale:accessibility' : APP + ':locale:accessibility';
+    const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), settingsKey);
+    assert.strictEqual(saved.textSize, 'large', 'El tamaño elegido debe guardarse');
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    assert.strictEqual(await readScale(), 1.15,
+      'El tamaño elegido debe seguir aplicado tras recargar la app');
+    assert.strictEqual(await page.evaluate(() => parseFloat(getComputedStyle(document.body).fontSize)), fontSizeAfter,
+      'El tamaño calculado del texto debe persistir tras recargar la app');
+  } finally {
+    await page.close().catch(() => {});
+    await context.close().catch(() => {});
+  }
+}
+
+async function exerciseAppearanceSettings(browser, baseUrl) {
+  const context = await browser.newContext({
+    serviceWorkers: 'block', viewport: { width: 1280, height: 900 }, colorScheme: 'dark',
+  });
+  const page = await context.newPage();
+  try {
+    await page.addInitScript(() => {
+      if (!sessionStorage.getItem('__appearance_settings_initialized')) {
+        localStorage.clear();
+        sessionStorage.setItem('__appearance_settings_initialized', 'true');
+      }
+    });
+    await page.goto(baseUrl + '/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+    const trigger = page.locator('.locale-settings-trigger');
+    await trigger.waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
+    await trigger.click();
+    const drawer = page.locator('#accessibility-settings');
+    await drawer.waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
+    assert.strictEqual(await drawer.getAttribute('aria-modal'), 'true');
+
+    const bodyColors = () => page.evaluate(() => ({
+      background: getComputedStyle(document.body).backgroundColor,
+      color: getComputedStyle(document.body).color,
+      palette: ['--paper', '--color-bg', '--color-fondo', '--color-background',
+        '--ink', '--color-text', '--color-texto'].map(name =>
+        getComputedStyle(document.documentElement).getPropertyValue(name).trim()),
+    }));
+    await drawer.locator('[data-settings-theme="light"]').click();
+    assert.strictEqual(await page.locator('html').getAttribute('data-theme'), 'light',
+      'El tema claro debe aplicarse al documento');
+    const light = await bodyColors();
+    await drawer.locator('[data-settings-theme="dark"]').click();
+    assert.strictEqual(await page.locator('html').getAttribute('data-theme'), 'dark',
+      'El tema oscuro debe aplicarse al documento');
+    const dark = await bodyColors();
+    assert.notDeepEqual(dark.palette, light.palette, 'El tema debe cambiar la paleta visible de la app: ' + JSON.stringify({ dark: dark.palette, light: light.palette }));
+    await drawer.locator('[data-settings-contrast]').check();
+    assert.strictEqual(await page.locator('html').getAttribute('data-theme'), 'contrast',
+      'Alto contraste debe activar la paleta de contraste');
+    const contrast = await bodyColors();
+    assert.notDeepEqual(contrast.palette, dark.palette,
+      'Alto contraste debe cambiar la paleta visible respecto al tema oscuro');
+    const settingsKey = await page.evaluate(() => {
+      const cfg = window.LocalePickerConfig || {};
+      return cfg.settingsStorageKey || ((cfg.storageKey || 'apptonomia:locale') + ':accessibility');
+    });
+    const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), settingsKey);
+    assert.strictEqual(saved.theme, 'dark');
+    assert.strictEqual(saved.contrast, true);
+
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.locator('.locale-settings-trigger').waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
+    assert.strictEqual(await page.locator('html').getAttribute('data-theme'), 'contrast',
+      'El alto contraste debe continuar activo después de recargar');
+    /* El idioma vive DENTRO del cajón de ajustes (`languageInDrawer` en el
+       config de esta app), no como control suelto en la cabecera: hay que
+       abrir el ⚙️ para cambiarlo. La recarga anterior deja el cajón
+       cerrado, así que se abre aquí. */
+    await page.locator('.locale-settings-trigger').click();
+    const languageDrawer = page.locator('#accessibility-settings');
+    await languageDrawer.waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
+
+    const languagePicker = languageDrawer.locator('.locale-picker-btn');
+    await languagePicker.click();
+    const english = languageDrawer.locator('.locale-picker-panel li[data-locale="en"]');
+    await english.waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
+    await english.click();
+    /* Choosing a language swaps the document, so for an instant there is
+       no documentElement at all. The predicate has to answer "not yet"
+       instead of throwing, otherwise the TypeError ends the wait instead
+       of polling through the navigation. */
+    await page.waitForFunction(() =>
+      !!(document.documentElement && document.documentElement.lang.slice(0, 2) === 'en'),
+    null, { timeout: NAV_TIMEOUT });
+    assert.strictEqual((await page.locator('html').getAttribute('lang') || '').slice(0, 2), 'en',
+      'El desplegable del cajón debe cambiar el idioma activo de la app');
+    assert.strictEqual((await languagePicker.locator('.locale-picker-current').textContent()).trim(), 'EN');
+
+    /* El ⚙️ se queda solo en la fila de la cabecera y el idioma, dentro.
+       Se comprueba que el engranaje es el último de su fila en vez de que
+       esté solo, porque esa fila puede llevar otros controles. */
+    const gearRow = await page.evaluate(() => {
+      const gear = document.querySelector('.locale-settings-trigger');
+      const drawer = document.getElementById('accessibility-settings');
+      const picker = document.getElementById('locale-picker');
+      return {
+        pickerInDrawer: drawer.contains(picker),
+        gearIsLast: !!gear && gear.parentNode.lastElementChild === gear,
+        alignsEnd: getComputedStyle(gear.parentNode).justifyContent === 'flex-end',
+      };
+    });
+    assert.strictEqual(await page.locator('#accessibility-settings .locale-picker-btn').count(), 1,
+      'El cajón debe traer el desplegable de idioma');
+    assert.ok(gearRow.pickerInDrawer, 'El selector de idioma debe vivir dentro del cajón de ajustes');
+    assert.ok(gearRow.gearIsLast, 'El engranaje debe quedar arriba a la derecha, el último de su fila');
+    assert.ok(gearRow.alignsEnd, 'La fila de controles debe alinearse al final para quedar arriba a la derecha');
+    assert.strictEqual(await page.locator('#accessibility-settings [data-settings-more]').count(), 0,
+      'El cajón no debe enlazar a la página de ajustes propia del proyecto');
+  } finally {
+    await page.close().catch(() => {});
+    await context.close().catch(() => {});
+  }
+} 
+
+async function exerciseNativeSettings(browser, baseUrl) {
+  const context = await browser.newContext({
+    serviceWorkers: 'block', viewport: { width: 1280, height: 900 },
+  });
+  const page = await context.newPage();
+  try {
+    await page.addInitScript(() => {
+      if (!sessionStorage.getItem('__native_settings_initialized')) {
+        localStorage.clear();
+        sessionStorage.setItem('__native_settings_initialized', 'true');
+      }
+      window.__nativeSettingsTones = 0;
+      window.AudioContext = class {
+        constructor() { this.currentTime = 0; this.destination = {}; }
+        createOscillator() {
+          window.__nativeSettingsTones++;
+          return { frequency: { value: 0 }, connect() {}, start() {}, stop() {} };
+        }
+        createGain() {
+          return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} };
+        }
+      };
+    });
+
+    if (APP === 'calculia') {
+      await page.addInitScript(() => localStorage.setItem('calculia:pairs',
+        JSON.stringify({ stars: 2, completed: 1 })));
+      await page.goto(baseUrl + '/config/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      await page.locator('#btnResetPersona').click();
+      await page.locator('#btnResetPersona').click();
+      assert.ok(await page.evaluate(() => localStorage.getItem('calculia:pairs')),
+        'Restablecer datos personales debe conservar el progreso de Calculia');
+      assert.strictEqual(await page.evaluate(() => localStorage.getItem('calculia:locale')), null,
+        'Restablecer datos personales debe borrar el idioma guardado');
+      await page.locator('#btnResetApp').click();
+      await page.locator('#btnResetApp').click();
+      assert.strictEqual(await page.evaluate(() => localStorage.getItem('calculia:pairs')), null,
+        'Restablecer la app debe borrar el progreso de Calculia');
+    } else if (APP === 'memofun') {
+      await page.goto(baseUrl + '/config/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      await page.locator('#text-size-group [data-value="extraLarge"]').click();
+      assert.strictEqual(await page.evaluate(() =>
+        getComputedStyle(document.documentElement).getPropertyValue('--text-scale').trim()), '1.3',
+        'Muy grande debe cambiar la escala visible del texto');
+      assert.strictEqual(await page.evaluate(() =>
+        JSON.parse(localStorage.getItem('memofun:prefs')).textSize), 'extraLarge');
+      await page.locator('#sounds-group [data-value="off"]').click();
+      assert.strictEqual(await page.evaluate(() =>
+        JSON.parse(localStorage.getItem('memofun:prefs')).sounds), false);
+      await page.evaluate(() => window.App.feedback.success());
+      assert.strictEqual(await page.evaluate(() => window.__nativeSettingsTones), 0,
+        'Desactivar sonidos en Ajustes debe silenciar el sonido real de Memofun');
+      await page.locator('#sounds-group [data-value="on"]').click();
+      await page.evaluate(() => window.App.feedback.success());
+      assert.ok(await page.evaluate(() => window.__nativeSettingsTones) > 0,
+        'Activar sonidos en Ajustes debe habilitar el sonido real de Memofun');
+      await Promise.all([
+        page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT }),
+        page.locator('#lang-en').click(),
+      ]);
+      await page.waitForFunction(() => document.documentElement.lang.slice(0, 2) === 'en',
+        null, { timeout: NAV_TIMEOUT });
+    } else if (APP === 'okeymoney') {
+      await page.goto(baseUrl + '/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      await page.locator('#btnSettings').click();
+      await page.locator('#textSizeOptions [data-size="extraLarge"]').click();
+      assert.strictEqual(await page.evaluate(() =>
+        getComputedStyle(document.documentElement).getPropertyValue('--text-scale').trim()), '1.3',
+        'Muy grande debe cambiar la escala tipográfica en Okeymoney');
+      assert.strictEqual(await page.evaluate(() =>
+        JSON.parse(localStorage.getItem('okeymoney:prefs')).textSize), 'extraLarge');
+      const downloadPromise = page.waitForEvent('download');
+      await page.locator('#btnExportData').click();
+      const download = await downloadPromise;
+      assert.match(download.suggestedFilename(), /^okeymoney-backup-.*\.json$/,
+        'Exportar debe descargar una copia JSON');
+    } else if (APP === 'routime') {
+      await page.goto(baseUrl + '/config/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      await page.locator('#selectorTamano [data-valor="muygrande"]').click();
+      assert.strictEqual(await page.evaluate(() =>
+        getComputedStyle(document.documentElement).getPropertyValue('--escala-texto').trim()), '1.3',
+        'Muy grande debe cambiar la escala tipográfica de Routime');
+      assert.strictEqual(await page.evaluate(() =>
+        JSON.parse(localStorage.getItem('routime:prefs')).tamanoLetra), 'muygrande');
+      await page.locator('#selectorSonidos [data-valor="off"]').click();
+      assert.strictEqual(await page.evaluate(() =>
+        JSON.parse(localStorage.getItem('routime:prefs')).sonidos), false);
+      await page.goto(baseUrl + '/site/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      await page.evaluate(() => window.App.feedback.success());
+      assert.strictEqual(await page.evaluate(() => window.__nativeSettingsTones), 0,
+        'Desactivar sonidos debe silenciar el sonido real de Routime');
+      await page.goto(baseUrl + '/config/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      await page.locator('#selectorSonidos [data-valor="on"]').click();
+      await page.goto(baseUrl + '/site/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      await page.evaluate(() => window.App.feedback.success());
+      assert.ok(await page.evaluate(() => window.__nativeSettingsTones) > 0,
+        'Activar sonidos debe habilitar el sonido real de Routime');
+      await page.locator('#inputOwnAddress').fill('Calle de prueba 12');
+      await page.locator('#btnSaveMyDetails').click();
+      assert.ok(await page.evaluate(() => Object.keys(localStorage)
+        .some(key => (localStorage.getItem(key) || '').includes('Calle de prueba 12'))),
+        'Guardar mis datos debe persistir la dirección en esta app');
+      const downloadPromise = page.waitForEvent('download');
+      await page.locator('#btnExportar').click();
+      await downloadPromise;
+    } else if (APP === 'ludia') {
+      await page.goto(baseUrl + '/#settings', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      await page.locator('[data-setting="size"]').waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
+      await page.locator('[data-setting="size"]').selectOption('large');
+      assert.ok(await page.locator('html').evaluate(node => node.classList.contains('large-text')),
+        'El tamaño grande debe activar la clase de tipografía de Ludia');
+      await page.locator('[data-setting="contrast"]').check();
+      assert.ok(await page.locator('html').evaluate(node => node.classList.contains('high-contrast')),
+        'El contraste debe activar la paleta propia de Ludia');
+      await page.locator('[data-setting="names"]').check();
+      assert.ok(await page.locator('html').evaluate(node => node.classList.contains('piece-names')),
+        'Mostrar nombres debe activar las etiquetas de piezas');
+      await page.locator('[data-setting="sounds"]').check();
+      await page.evaluate(async () => window.App.sound.play('success'));
+      assert.ok(await page.evaluate(() => window.__nativeSettingsTones) > 0,
+        'Activar sonidos debe permitir el sonido real de Ludia');
+      await page.locator('[data-setting="sounds"]').uncheck();
+      const mutedAt = await page.evaluate(() => window.__nativeSettingsTones);
+      await page.evaluate(async () => window.App.sound.play('success'));
+      assert.strictEqual(await page.evaluate(() => window.__nativeSettingsTones), mutedAt,
+        'Desactivar sonidos debe silenciar el sonido real de Ludia');
+      await page.evaluate(() => window.App.storage.write('progress', { lessons: ['test'], exercises: {}, minigames: {} }));
+      await page.locator('[data-action="delete-data"]').click();
+      await page.locator('#confirm-action').click();
+      assert.strictEqual(await page.evaluate(() =>
+        Object.keys(localStorage).some(key => key.startsWith('enroca:'))), false,
+        'Borrar datos debe eliminar todo el progreso y las preferencias de Ludia');
+    } else if (APP === 'sinonimia') {
+      await page.goto(baseUrl + '/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
+      const before = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize));
+      await page.locator('#letra-mas').click();
+      const after = await page.evaluate(() => parseFloat(getComputedStyle(document.documentElement).fontSize));
+      assert.ok(after > before, 'A+ debe aumentar el texto visible de Sinonimia');
+      assert.strictEqual(await page.locator('#contraste-toggle').getAttribute('aria-pressed'), 'false');
+      await page.locator('#contraste-toggle').click();
+      assert.strictEqual(await page.locator('#contraste-toggle').getAttribute('aria-pressed'), 'true');
+      assert.strictEqual(await page.locator('body').evaluate(node => node.classList.contains('alto-contraste')), true);
+      assert.strictEqual(await page.evaluate(() => localStorage.getItem('sinonimia-contraste')), '1');
+    }
   } finally {
     await page.close().catch(() => {});
     await context.close().catch(() => {});
@@ -479,10 +870,35 @@ async function exerciseFullFunctionality(page, route) {
     return exerciseMemofunStudy(page);
   }
   if (APP === 'sinonimia') return exerciseSinonimia(page, route);
-  if (APP === 'enroca') return exerciseEnroca(page, route);
+  if (APP === 'enroca' || APP === 'ludia') return exerciseEnroca(page, route);
   if (APP === 'okeymoney') return exerciseOkeymoney(page);
   if (APP === 'calculia' || APP === 'routime') return exerciseActivityApp(page);
   return 0;
+}
+
+/* Pulsa un control tolerando las transiciones. El recorrido pulsa y solo
+   espera 25 ms, asi que el control siguiente puede medirse mientras un
+   panel se abre o una tarjeta crece: Playwright lo rechaza con 'Element is
+   outside of the viewport' aunque la app este perfectamente bien. Se deja
+   que la animacion se detenga, se mete el elemento en el viewport a
+   proposito y se reintenta. Devuelve si el control quedo pulsado. */
+async function clickControl(page, locator) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await locator.click({ timeout: 2000, force: true });
+      return true;
+    } catch (error) {
+      if (!await locator.isVisible().catch(() => false)) return false;
+      await locator.scrollIntoViewIfNeeded({ timeout: 1000 }).catch(() => {});
+      try {
+        await locator.click({ timeout: 2000, force: true });
+        return true;
+      } catch (retryError) {
+        await page.waitForTimeout(220);
+      }
+    }
+  }
+  return false;
 }
 
 async function exerciseControls(page) {
@@ -517,25 +933,80 @@ async function exerciseControls(page) {
       const identity = state + '|' + control.tag + '|' + control.id + '|' +
         control.href + '|' + control.text;
       if (seen.has(identity)) continue;
-      seen.add(identity);
       const selector = control.tag === 'BUTTON' ? 'button:visible' :
         control.tag === 'SUMMARY' ? 'summary:visible' : 'a[href^="#"]:visible';
       const locator = page.locator(selector).nth(control.index);
       if (!await locator.isVisible().catch(() => false)) continue;
+      await settleDrawerTransition(page);
+      /* El indice sale de una foto del DOM y el recorrido va pulsando: en
+         cuanto se pulsa un control la vista puede cambiar (una carta abre un
+         panel, un boton navega) y 'button:visible' ya no es la misma lista,
+         de modo que .nth(control.index) resuelve un elemento DISTINTO del
+         inventariado. Sin esta comprobacion el smoke accuse a la app de un
+         boton que no podia pulsar: el indice caduco, no se rompio nada. Si el
+         elemento que resuelve el indice ya no es el del inventario se salta,
+         y se reintenta en la ronda siguiente con el DOM ya refrescado. */
+      const stillInventoried = await locator.evaluate((node, expected) => {
+        const text = (node.innerText || node.getAttribute('aria-label') || '').trim().slice(0, 100);
+        return node.tagName === expected.tag &&
+          (node.id || '') === expected.id &&
+          (node.getAttribute('href') || '') === expected.href &&
+          text === expected.text;
+      }, control).catch(() => false);
+      if (!stillInventoried) continue;
+      /* Solo se marca como visto lo que se ha pulsado de verdad. Marcandolo
+         antes de comprobar el indice, el control se saltaba y no volvia a
+         intentarse en ninguna de las 12 rondas: el smoke dejaba de fallar
+         pero tambien dejaba de probar (medido: -54% de interacciones). */
+      seen.add(identity);
       try {
         if (control.tag === 'A') await locator.evaluate(node => node.click());
         else await locator.click({ timeout: 2000, force: true });
         actions += 1;
         await page.waitForTimeout(25);
       } catch (error) {
-        if (await locator.isVisible().catch(() => false)) {
-          throw new Error('No se pudo activar ' + control.tag + '#' +
-            (control.id || '(sin id)') + ' "' + control.text + '": ' + error.message);
+        /* Si el elemento sigue en pantalla tras el fallo, se reintenta una
+           vez dejandolo entrar en el viewport antes de declararlo fallo
+           real. El error tipico es 'Element is outside of the viewport'
+           por una transicion a medias, no un boton roto (lo reproducia
+           okeymoney en /#block-practica con #unidad-bankProducts, que un
+           clic de verdad si acepta). */
+        if (!await locator.isVisible().catch(() => false)) continue;
+        if (await clickControl(page, locator)) {
+          actions += 1;
+          await page.waitForTimeout(25);
+          continue;
         }
+        throw new Error('No se pudo activar ' + control.tag + '#' +
+          (control.id || '(sin id)') + ' "' + control.text + '": ' + error.message);
       }
     }
   }
   return actions;
+}
+
+/* El cajon de ajustes compartido entra deslizando 160 ms. En cuanto se
+   pulsa el engranaje sus botones ya son :visible para el navegador
+   (visibility cambia con la clase) pero el transform todavia no los ha
+   metido dentro del viewport, de modo que el clic siguiente revienta con
+   'Element is outside of the viewport'. Aqui se espera a que el cajon
+   termine de entrar. Sin esto el recorrido de controles falla en las
+   paginas donde el engranaje cae entre los primeros botones. */
+async function settleDrawerTransition(page) {
+  await page.evaluate(() => new Promise((done) => {
+    const drawer = document.querySelector('.locale-settings-drawer.is-open');
+    if (!drawer) return done();
+    const inside = () => {
+      const r = drawer.getBoundingClientRect();
+      return r.left >= 0 && r.right <= window.innerWidth + 1;
+    };
+    if (inside()) return done();
+    const onEnd = () => {
+      if (inside()) { drawer.removeEventListener('transitionend', onEnd); done(); }
+    };
+    drawer.addEventListener('transitionend', onEnd);
+    setTimeout(() => { drawer.removeEventListener('transitionend', onEnd); done(); }, 600);
+  }));
 }
 
 async function validateLinks(page, baseUrl) {
@@ -608,11 +1079,23 @@ async function main() {
   const failures = [];
   let tested = 0, controls = 0, journeys = 0;
   try {
-    await exerciseSoundSettings(browser, baseUrl);
-    process.stdout.write('\n[' + APP + '] sound settings OK');
-    await exerciseUnsupportedBrowserLanguage(browser, baseUrl);
-    process.stdout.write('\n[' + APP + '] fr-FR fallback OK');
-    for (const route of routes) {
+    if (['ludia', 'memofun', 'routime'].includes(APP)) {
+      process.stdout.write('\n[' + APP + '] app-specific sound settings covered below');
+    } else {
+      await exerciseSoundSettings(browser, baseUrl);
+      process.stdout.write('\n[' + APP + '] sound settings OK');
+    }
+    await exerciseFontSizeSettings(browser, baseUrl);
+    process.stdout.write('\n[' + APP + '] font-size settings OK');
+    await exerciseAppearanceSettings(browser, baseUrl);
+    process.stdout.write('\n[' + APP + '] theme/contrast/language settings OK');
+    await exerciseNativeSettings(browser, baseUrl);
+    process.stdout.write('\n[' + APP + '] native settings OK');
+    if (process.env.UI_SMOKE_SETTINGS_ONLY !== '1') {
+      await exerciseUnsupportedBrowserLanguage(browser, baseUrl);
+      process.stdout.write('\n[' + APP + '] fr-FR fallback OK');
+    }
+    for (const route of (process.env.UI_SMOKE_SETTINGS_ONLY === '1' ? [] : routes)) {
       process.stdout.write('\n[' + APP + '] ' + route + ' ');
       try {
         const result = await runRoute(browser, baseUrl, route);

@@ -14,7 +14,16 @@
   }
   const queryLang = new URLSearchParams(location.search).get('lang');
   if (['es', 'en'].includes(queryLang)) settings.lang = queryLang;
-  else if (!storedSettings || !['es', 'en'].includes(storedSettings.lang)) settings.lang = (navigator.languages || [navigator.language]).some(l => l && l.startsWith('es')) ? 'es' : (navigator.language || '').startsWith('en') ? 'en' : 'en';
+  else if (!storedSettings || !['es', 'en'].includes(storedSettings.lang)) {
+    const primaryLanguage = ((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase().split(/[-_]/)[0];
+    settings.lang = primaryLanguage === 'es' ? 'es' : 'en';
+  }
+  /* Publish the resolved language to the shared picker's key. The picker
+     reads `enroca:locale` on load to decide which language to show, and it
+     only ever writes it when the change came from its own dropdown — so
+     without this the header control could disagree with the page after a
+     first visit resolved the language from ?lang= or from the browser. */
+  try { localStorage.setItem('enroca:locale', settings.lang); } catch (_) {}
   let progress = { lessons: [], exercises: {}, minigames: {} };
   const savedProgress = storage.read('progress', null);
   if (savedProgress && typeof savedProgress === 'object') {
@@ -179,7 +188,7 @@
   function startPractice(id, navigate = true) {
     let questions = allExercises.filter(q => id === 'all' || q.lesson.id === id);
     if (!questions.length) { id = 'all'; questions = allExercises.slice(); }
-    practice = { id, questions, at: 0, hinted: false, corrected: false, solved: false, selected: false, hintVisible: false, message: '' };
+    practice = { id, questions, at: 0, hinted: false, corrected: false, solved: false, selected: false, hintVisible: false, awaitingAck: false, message: '' };
     practiceReturn = false;
     if (navigate) go('exercise/' + id);
   }
@@ -189,37 +198,38 @@
     const offset = allExercises.findIndex(item => item.id === q.id) % 3;
     const answerList = Array.from({ length: q.options || 0 }, (_, i) => (i + offset) % q.options);
     let content;
-    if (q.type === 'choice') content = `<div class="answer-list">${answerList.map((option, i) => `<button type="button" class="answer ${practice.solved && option === q.answer ? 'correct' : ''}" data-answer="${option}" ${practice.solved ? 'disabled' : ''}><span class="answer-index" aria-hidden="true">${practice.solved && option === q.answer ? '✓' : i + 1}</span>${esc(t(q.key + '.a.' + option))}</button>`).join('')}</div>`;
+    if (q.type === 'choice') content = `<div class="answer-list">${answerList.map((option, i) => `<button type="button" class="answer ${practice.solved && option === q.answer ? 'correct' : ''}" data-answer="${option}" ${practice.solved || practice.awaitingAck ? 'disabled' : ''}><span class="answer-index" aria-hidden="true">${practice.solved && option === q.answer ? '✓' : i + 1}</span>${esc(t(q.key + '.a.' + option))}</button>`).join('')}</div>`;
     else if (q.type === 'locate') {
-      content = renderBoard(diagramBoard(q.lesson), { interactive: true, marks: practice.hintVisible || practice.solved ? [C.index(q.to)] : [], chosen: practice.solved ? C.index(q.to) : null, coordinates: true, focusAt: C.index('a1') });
-      if (!practice.solved) content += `<details class="list-controls" ${listOpen ? 'open' : ''}><summary>${esc(t('play.list'))}</summary><label>${esc(t('practice.chooseSquare'))}<select data-list-to><option value="">${esc(t('play.choose'))}</option>${Array.from({ length: 64 }, (_, at) => `<option value="${at}">${C.square(at)}</option>`).join('')}</select></label>${button('common.choose', 'list-move', 'secondary', 'disabled')}</details>`;
+      content = renderBoard(diagramBoard(q.lesson), { interactive: !practice.awaitingAck, marks: practice.hintVisible || practice.solved ? [C.index(q.to)] : [], chosen: practice.solved ? C.index(q.to) : null, coordinates: true, focusAt: C.index('a1') });
+      if (!practice.solved && !practice.awaitingAck) content += `<details class="list-controls" ${listOpen ? 'open' : ''}><summary>${esc(t('play.list'))}</summary><label>${esc(t('practice.chooseSquare'))}<select data-list-to><option value="">${esc(t('play.choose'))}</option>${Array.from({ length: 64 }, (_, at) => `<option value="${at}">${C.square(at)}</option>`).join('')}</select></label>${button('common.choose', 'list-move', 'secondary', 'disabled')}</details>`;
     } else {
       const board = diagramBoard(q.lesson);
       if (practice.solved) { board[C.index(q.to)] = board[C.index(q.from)]; board[C.index(q.from)] = null; }
-      content = renderBoard(board, { interactive: true, chosen: practice.selected ? C.index(q.from) : null, marks: practice.hintVisible && !practice.solved ? [C.index(q.to)] : [], focusAt: practice.solved ? C.index(q.to) : C.index(q.from) });
-      if (!practice.solved) content += listControls(board, [C.index(q.from)], Array.from({ length: 64 }, (_, i) => i).filter(i => i !== C.index(q.from)), false);
+      content = renderBoard(board, { interactive: !practice.awaitingAck, chosen: practice.selected ? C.index(q.from) : null, marks: practice.hintVisible && !practice.solved ? [C.index(q.to)] : [], focusAt: practice.solved ? C.index(q.to) : C.index(q.from) });
+      if (!practice.solved && !practice.awaitingAck) content += listControls(board, [C.index(q.from)], Array.from({ length: 64 }, (_, i) => i).filter(i => i !== C.index(q.from)), false);
     }
     const heading = t('lesson.' + q.lesson.id + '.title');
-    const controls = `<div class="actions">${practice.solved ? button('common.next', 'next-exercise') : button('practice.hint', 'exercise-hint', 'secondary')}${button('practice.lesson', 'review-lesson', 'quiet', `data-lesson="${q.lesson.id}"`)}</div>`;
+    const controls = `<div class="actions">${practice.solved ? button('common.next', 'next-exercise') : practice.awaitingAck ? button('practice.understood', 'exercise-understood') : button('practice.hint', 'exercise-hint', 'secondary')}${!practice.awaitingAck ? button('practice.lesson', 'review-lesson', 'quiet', `data-lesson="${q.lesson.id}"`) : ''}</div>`;
     const feedback = practice.message ? `<p class="feedback ${practice.solved ? '' : 'hint'}">${practice.solved ? '✓ ' : ''}${esc(practice.message)}</p>` : '';
     const hint = practice.hintVisible && !practice.solved ? `<p class="feedback hint">${esc(t(q.key + '.hint'))}</p>` : '';
     if (q.type === 'choice') return `${breadcrumb('home', 'nav.home')}<div class="topic-heading"><h1>${esc(heading)}</h1></div><div class="lesson-layout"><section class="lesson-text"><p class="lesson-instruction">${esc(t(q.key))}</p>${content}${feedback}${hint}${controls}</section><div class="board-example">${renderBoard(diagramBoard(q.lesson), { label: 'learn.diagram' })}</div></div>`;
     return `${breadcrumb('home', 'nav.home')}<div class="topic-heading"><h1>${esc(heading)}</h1></div><div class="lesson-layout"><section class="lesson-text"><p class="lesson-instruction">${esc(t(q.key))}</p>${feedback}${hint}${controls}</section><div class="board-example">${content}</div></div>`;
   }
   function answer(correct) {
-    if (practice.solved) return;
+    if (practice.solved || practice.awaitingAck) return;
     if (correct) {
       practice.solved = true;
       const q = practice.questions[practice.at], supported = practice.hinted || practice.corrected;
       if (progress.exercises[q.id] !== 'independent') progress.exercises[q.id] = supported ? 'supported' : 'independent';
       save('progress', progress);
       practice.message = t('practice.right');
-    } else { practice.corrected = true; practice.message = t('practice.again'); }
+    } else { practice.corrected = true; practice.hintVisible = true; practice.awaitingAck = true; practice.message = t('practice.again'); }
     const activeOption = document.activeElement?.dataset.answer;
     const activeSquare = document.activeElement?.dataset.square;
     render(false); announce(practice.message);
     sound.play(correct ? 'success' : 'error');
     if (correct) main.querySelector('[data-action="next-exercise"]').focus();
+    else if (practice.awaitingAck) main.querySelector('[data-action="exercise-understood"]')?.focus();
     else if (activeOption !== undefined) main.querySelector(`[data-answer="${activeOption}"]`)?.focus();
     else if (activeSquare !== undefined) main.querySelector(`[data-square="${activeSquare}"]`)?.focus();
   }
@@ -438,11 +448,12 @@
       case 'example': exampleMoved = !exampleMoved; render(false); main.querySelector('[data-action="example"]').focus(); break;
       case 'finish-lesson': finishLesson(control.dataset.lesson); break;
       case 'exercise-hint': practice.hinted = true; practice.hintVisible = true; render(false); main.querySelector('[data-action="exercise-hint"]').focus(); announce(t(practice.questions[practice.at].key + '.hint')); break;
+      case 'exercise-understood': practice.awaitingAck = false; render(false); main.querySelector('[data-action="exercise-hint"]')?.focus(); announce(t(practice.questions[practice.at].key + '.hint')); break;
       case 'review-lesson': practice.hinted = true; practiceReturn = true; go('lesson/' + control.dataset.lesson + '/0'); break;
       case 'return-exercise': practiceReturn = false; go(practice.topicId ? 'lesson/' + practice.topicId + '/' + (lessons.find(l => l.id === practice.topicId).steps + practice.at) : 'exercise/' + practice.id); break;
       case 'next-exercise': {
         const topicId = practice.topicId, lesson = lessons.find(l => l.id === topicId);
-        practice.at++; Object.assign(practice, { hinted: false, corrected: false, solved: false, selected: false, hintVisible: false, message: '' });
+        practice.at++; Object.assign(practice, { hinted: false, corrected: false, solved: false, selected: false, hintVisible: false, awaitingAck: false, message: '' });
         if (topicId) {
           if (practice.at >= practice.questions.length && !progress.lessons.includes(topicId)) { progress.lessons.push(topicId); save('progress', progress); }
           go('lesson/' + topicId + '/' + (lesson.steps + practice.at));
@@ -500,6 +511,13 @@
     settings[control.dataset.setting] = control.type === 'checkbox' ? control.checked : control.value;
     if (control.dataset.setting === 'lang') {
       const url = new URL(location.href); url.searchParams.set('lang', settings.lang); history.replaceState(null, '', url);
+      /* The shared picker's own key is a MIRROR of this one: it reads it to
+         decide which language to show on load, and it only ever writes it
+         when the change comes from its dropdown. Changing the language here
+         instead would leave the mirror stale, so the header dropdown would
+         offer the language the visitor just switched away from. The app's
+         `enroca:settings.lang` stays the single source of truth. */
+      try { localStorage.setItem('enroca:locale', settings.lang); } catch (_) {}
     }
     save('settings', settings); render(false); if (settings.sounds && control.dataset.setting === 'sounds') sound.play('success'); main.querySelector(`[data-setting="${control.dataset.setting}"]`)?.focus();
   });
@@ -529,7 +547,11 @@
   window.addEventListener('pagehide', () => { clearTimeout(aiTimer); sound.stop(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { clearTimeout(aiTimer); sound.stop(); } else scheduleAI(); });
   applySettings(); render(false);
-  if ('serviceWorker' in navigator && ['http:', 'https:'].includes(location.protocol)) {
-    navigator.serviceWorker.register('./sw-v10.js').then(registration => registration.update()).catch(() => { /* Direct file use and unavailable SW do not prevent play. */ });
-  }
+  /* No service worker is registered here. This used to register
+     "./sw-v10.js", a second copy of the worker that assets/js/sw-register.js
+     registers at the very same root scope. Only one script can hold a given
+     scope, so the two fought on every page load, and each visit re-created
+     sw-v10's cache ("ludia-v11") holding poisoned entries — "./index.html"
+     stored as the followed redirect to "/". Registering nothing here leaves
+     assets/js/sw-register.js in sole charge of /sw.js. */
 }());
