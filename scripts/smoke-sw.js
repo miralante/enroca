@@ -34,7 +34,11 @@ async function main() {
   const files = [...filesBlock[1].matchAll(/['"]([^'"]+)['"]/g)].map(match => match[1]);
   assert.ok(files.length > 0, 'La lista de caché no puede estar vacía');
   for (const relative of files) {
-    assert.ok(fs.existsSync(path.join(ROOT, relative.replace(/^\.\//, ''))), `Falta en disco: ${relative}`);
+    const local = path.join(ROOT, relative.replace(/^\.\//, ''));
+        assert.ok(fs.existsSync(local), `Falta en disco: ${relative}`);
+        // A directory entry is served as its index.html; without one the precache
+        // 404s and the whole install fails, so no update would ever reach users.
+        if (relative.endsWith('/')) assert.ok(fs.existsSync(path.join(local, 'index.html')), `Directorio sin index.html en la caché: ${relative}`);
   }
 
   const server = await startServer();
