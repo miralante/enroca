@@ -59,6 +59,21 @@ also loaded by Node tests. `app.js` renders hash routes and manages the journey.
 `CLOUDFLARE.md` is the deployment runbook. `doc/en/team.md` describes validation
 with learners and supporters; do not claim certified accessibility or learning gains.
 
+## Shared components: one definition (suite-wide)
+
+A component that several pages or activities use is defined once, in the
+app's shared stylesheet, and never copied into a page's own stylesheet. A
+page's own stylesheet holds only what is specific to it (a picture, a grid,
+a symbol). Copies drift apart without anybody noticing: the same control ends
+up in a different place on each page, and every copy is valid CSS, so no check
+fails. A component used by two pages moves to the shared sheet in the same
+change. This app has no shared stylesheet of components yet; the first one goes to `assets/css/components.css`.
+
+Where an app has a shared component, it documents it in its design guide and
+guards it with a check. Calculia is the reference: the explanation carousel
+and the test sheet live in `assets/css/components.css` (`doc/en/design.md`
+§3.3–3.4), and `scripts/checks/design.js` (check 18) fails on a second copy.
+
 ## Asset version tokens (`?v=`) — never hand-edit these
 
 This project's `_headers` serves some assets as
