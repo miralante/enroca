@@ -2,7 +2,7 @@
    registration scope. The server copy wins while online; the cache answers
    only when the network is unreachable. */
 'use strict';
-var VERSION = 'ludia-v26';
+var VERSION = 'ludia-v27';
 var FILES = [
   "./",
   "./app.js",
@@ -19,6 +19,7 @@ var FILES = [
      sw-register (the PWA). */
   "./assets/js/locale-picker-config.js",
   "./assets/js/sw-register.js",
+  "./assets/js/achievements.js",
   "./assets/css/styles.css",
   "./assets/css/locale-picker.css",
   "./assets/fonts/atkinson-hyperlegible-400.woff2",

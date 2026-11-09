@@ -17,7 +17,7 @@
   function columnPicker(s) { return `<details class="coordinate-picker"><summary>${esc(t('largeControls'))}</summary><label>${esc(t('columnName'))}<select class="large-select" data-four-column>${Array.from({length:7},(_,i)=>`<option value="${i}" ${s.board[i]?'disabled':''}>${i+1}</option>`).join('')}</select></label>${button(t('chooseCell'),'column-list','secondary')}</details>`; }
   const back = id => `<a class="breadcrumb" href="${id ? url(id) : '#home'}">← ${esc(t(id ? 'back' : 'all'))}</a>`;
   function stop() { clearTimeout(timer); timer = null; }
-  function saveProgress() { ctx.save('ludia-progress', progress); }
+  function saveProgress() { (ctx ? ctx.save : storage.write.bind(storage))('ludia-progress', progress); window.App.achievements?.sync(); }
   function record(id, kind, item) { if (!progress[id] || typeof progress[id] !== 'object') progress[id] = {}; if (!Array.isArray(progress[id][kind])) progress[id][kind] = []; if (!progress[id][kind].includes(item)) progress[id][kind].push(item); saveProgress(); }
   function count(g, kind) { return g.lessons.filter(l => Array.isArray(progress[g.id]?.[kind]) && progress[g.id][kind].includes(l.id)).length; }
   function illustration(g) {
@@ -96,7 +96,7 @@
     if(!active) return false; const g=G.get(active.id), before=active.states.at(-1), next=g.move(before,action);
     if(!next) { message=t('invalid'); window.App.sound.play('error'); ctx.announce(message); renderLocal(); return false; }
     active.actions.push(G.copy(action)); active.states.push(next); hintAction=null; selected=null; message=''; persist();
-    if(g.status(next).ended) { record(g.id,'matches','finished'); window.App.sound.play('success'); } else window.App.sound.play('move');
+    if(g.status(next).ended) { if(g.status(next).winner===1&&active.options.partner!=='local'&&(g.players||g.id==='battleship'))window.App.achievements?.achieve('champion'); record(g.id,'matches','finished'); window.App.sound.play('success'); } else window.App.sound.play('move');
     renderLocal(action.at!==undefined?`[data-cell="${action.at}"]`:null); ctx.announce(window.LudiaStatus?.[g.id]?.(next,api)||statusText(g,next)); return true;
   }
   function schedule(g) {
@@ -108,7 +108,8 @@
   function answer(correct) {
     if(exercise.solved)return;
     exercise.solved=correct; exercise.feedback=t(correct?'correct':'retry');
-    if(correct){ const [,id,,raw]=location.hash.slice(1).split('/'); const g=G.get(id), l=g.lessons[Number(raw)||0]; record(g.id,'exercises',l.id); window.App.sound.play('success'); }
+    if(!correct){ exercise.missed=true; window.App.achievements?.missed(); }
+    if(correct){ window.App.achievements?.solved(!exercise.missed); const [,id,,raw]=location.hash.slice(1).split('/'); const g=G.get(id), l=g.lessons[Number(raw)||0]; record(g.id,'exercises',l.id); window.App.sound.play('success'); }
     renderLocal(); ctx.announce(exercise.feedback);
   }
   function tryExercise(action) {
@@ -168,5 +169,5 @@
   window.addEventListener('pagehide',stop);
   const api={tr,t,esc,button,link,url,grid,coordinates,renderBoard,commit,tryExercise,renderLocal,stop, name,statusText, isComputer,
     get selected(){return selected;},set selected(v){selected=v;},get hintAction(){return hintAction;},get active(){return active;},get exercise(){return exercise;},get message(){return message;},set message(v){message=v;},get ctx(){return ctx;},setTimer(fn,ms){stop();timer=setTimeout(fn,ms);}};
-  window.Ludia={handle,stop,api,reset(){stop();active=null;exercise=null;sessions={};progress={};message='';selected=null;}};
+  window.Ludia={handle,stop,api,record,reset(){stop();active=null;exercise=null;sessions={};progress={};message='';selected=null;}};
 }());
