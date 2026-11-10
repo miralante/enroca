@@ -1,6 +1,6 @@
-# Enroca deployment
+# Ludia deployment
 
-Enroca uses Cloudflare Workers static assets, following the Apptonomia runbook
+Ludia uses Cloudflare Workers static assets, following the Apptonomia runbook
 at ../apptonomia/CLOUDFLARE.md. Configured custom domain:
 https://ludia.apptonomia.uk/ (live since 2026-09-12).
 
