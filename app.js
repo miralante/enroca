@@ -400,10 +400,6 @@
   function renderSettings() {
     return `${breadcrumb()}<section class="settings-panel"><div class="page-intro"><h1>${esc(t('settings.title'))}</h1></div><label class="setting"><span>${esc(t('settings.pieceNames'))}</span><input type="checkbox" data-setting="names" ${settings.names ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.sounds'))}</span><input type="checkbox" data-setting="sounds" ${settings.sounds ? 'checked' : ''}></label><div class="settings-data"><h2>${esc(t('settings.data'))}</h2>${button('settings.delete', 'delete-data', 'secondary')}</div></section>`;
   }
-  function renderAbout() {
-    achievements.sync();
-    return `${breadcrumb()}<section class="settings-panel about-panel"><div class="page-intro"><h1>${esc(t('about.title'))}</h1><p>${esc(t('about.intro'))}</p></div><section class="achievements-panel" aria-labelledby="achievements-title"><h2 id="achievements-title">${esc(t('achievements.title'))}</h2><p>${esc(t('achievements.hint'))}</p><p class="achievements-count">${esc(t('achievements.count', { n: achievements.count(), total: achievements.list.length }))}</p><ul class="achievements-grid">${achievements.html()}</ul></section><p class="local-note">${esc(t('achievements.local'))}</p></section>`;
-  }
   function renderPrivacy() {
     return `${breadcrumb()}<section class="settings-panel"><h1>${esc(t('privacy.title'))}</h1>${['intro', 'storage', 'tracking', 'reset'].map(key => `<p>${esc(t('privacy.' + key))}</p>`).join('')}${link('nav.settings', 'settings')}</section>`;
   }
