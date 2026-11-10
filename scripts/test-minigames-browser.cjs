@@ -4,6 +4,23 @@ const assert = require('node:assert/strict'), fs = require('node:fs'), path = re
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const M = require('../minigames.js'), C = require('../chess.js');
 const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
+// Language, text size and contrast now live in the gear drawer (the shared
+// accessibility component), so the browser checks drive it from there.
+async function setGear(page, { lang, size, contrast } = {}) {
+  await page.locator('.locale-settings-trigger').click();
+  const drawer = page.locator('#accessibility-settings');
+  if (lang) {
+    await drawer.locator('.locale-picker-btn').click();
+    await drawer.locator('.locale-picker-panel [data-locale="' + lang + '"]').click();
+  }
+  if (size) await drawer.locator('[data-settings-size="' + size + '"]').click();
+  if (contrast !== undefined) {
+    const box = drawer.locator('[data-settings-contrast]');
+    if (contrast) await box.check(); else await box.uncheck();
+  }
+  await drawer.locator('[data-settings-close]').click();
+}
+
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 960 }, locale: 'es-ES' });
@@ -84,9 +101,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
     if (captures) fs.mkdirSync(captures, { recursive: true });
     for (const lang of ['es', 'en']) {
       await go('settings');
-      await page.locator('[data-setting="lang"]').selectOption(lang);
-      await page.locator('[data-setting="size"]').selectOption('large');
-      await page.locator('[data-setting="contrast"]').check();
+      await setGear(page, { lang, size: 'large', contrast: true });
       await page.locator('[data-setting="names"]').check();
       for (const width of [320, 375, 768, 1280]) {
         await page.setViewportSize({ width, height: 960 });
@@ -99,9 +114,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
       }
     }
     if (captures) {
-      await go('settings'); await page.locator('[data-setting="lang"]').selectOption('es');
-      await page.locator('[data-setting="size"]').selectOption('regular');
-      await page.locator('[data-setting="contrast"]').uncheck(); await page.locator('[data-setting="names"]').uncheck();
+      await go('settings'); await setGear(page, { lang: 'es', size: 'regular', contrast: false }); await page.locator('[data-setting="names"]').uncheck();
       await page.setViewportSize({ width: 1280, height: 960 }); await go('minigames');
       await page.screenshot({ path: path.join(captures, 'minigames-desktop.png'), fullPage: true });
       await go('minigame/rook-path'); await square('a1').click();

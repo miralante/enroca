@@ -5,6 +5,23 @@ const G=require('../games/shared.js');
 for(const file of ['tic-tac-toe','connect-four','battleship','sudoku','tetris','domino','checkers'])require('../games/'+file+'.js');
 for(const file of ['curriculum','sudoku-content','tetris-content','domino-content','checkers-content'])require('../games/'+file+'.js');
 const url=process.env.ENROCA_TEST_URL||'http://127.0.0.1:8099/';
+// Language, text size and contrast now live in the gear drawer (the shared
+// accessibility component), so the browser checks drive it from there.
+async function setGear(page, { lang, size, contrast } = {}) {
+  await page.locator('.locale-settings-trigger').click();
+  const drawer = page.locator('#accessibility-settings');
+  if (lang) {
+    await drawer.locator('.locale-picker-btn').click();
+    await drawer.locator('.locale-picker-panel [data-locale="' + lang + '"]').click();
+  }
+  if (size) await drawer.locator('[data-settings-size="' + size + '"]').click();
+  if (contrast !== undefined) {
+    const box = drawer.locator('[data-settings-contrast]');
+    if (contrast) await box.check(); else await box.uncheck();
+  }
+  await drawer.locator('[data-settings-close]').click();
+}
+
 (async()=>{
  const browser=await chromium.launch({headless:true}),context=await browser.newContext({viewport:{width:1365,height:1000},locale:'es-ES'}),page=await context.newPage(),errors=[];
  page.on('pageerror',e=>errors.push(e.message));
@@ -71,7 +88,7 @@ const url=process.env.ENROCA_TEST_URL||'http://127.0.0.1:8099/';
   await page.evaluate(fresh=>localStorage.setItem('enroca:ludia-sessions',JSON.stringify(fresh)),fresh);
   await page.reload();
   for(const lang of ['es','en']){
-   await go('settings');await page.locator('[data-setting="lang"]').selectOption(lang);await page.locator('[data-setting="size"]').selectOption('large');await page.locator('[data-setting="contrast"]').check();
+   await go('settings');await setGear(page, { lang, size: 'large', contrast: true });
    for(const width of [320,375,768,1365]){await page.setViewportSize({width,height:900});for(const hash of ['home',...G.catalog.flatMap(g=>['ludia/'+g.id,'ludia/'+g.id+'/rules/0','ludia/'+g.id+'/exercises/'+g.lessons.findIndex(l=>l.kind==='board'),'ludia/'+g.id+'/play','ludia/'+g.id+'/match'])]){await page.goto(url+'?lang='+lang+'#'+hash);await page.locator('main h1').waitFor();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,lang+' '+width+' '+hash+' overflow');assert.equal(await page.locator('html').getAttribute('lang'),lang);}}
   }
   console.log('✓ All games in ES/EN, large text and contrast at 320/375/768/1365px');

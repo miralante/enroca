@@ -12,7 +12,7 @@ The interface shows completed goals only. Internally progress distinguishes hint
 review and correction; it does not record errors, timing or attempts. These signals
 are not a mastery assessment and do not generate reports.
 
-Settings offers larger text, contrast, piece names and language. “Choose by name”
+The gear (⚙️) offers larger text, contrast and language; Settings offers piece names and sounds. “Choose by name”
 offers larger controls than squares. There is no narration; game sounds are optional.
 
 Review words, symbols, pace, touch controls, screen-reader use and independence

@@ -12,7 +12,7 @@ La interfaz muestra solo metas resueltas. Internamente el progreso distingue si 
 pista, repaso o corrección; no registra errores, tiempos ni intentos. Estas señales no
 son una evaluación de dominio y no generan informes.
 
-En Ajustes hay texto grande, contraste, nombres de piezas e idioma. «Elegir por nombre»
+En el engranaje (⚙️) hay texto grande, contraste e idioma; en Ajustes, nombres de piezas y sonidos. «Elegir por nombre»
 ofrece controles mayores que las casillas. No hay narración; los sonidos de juego son opcionales.
 
 Validar con personas usuarias y de apoyo la comprensión de palabras y símbolos,

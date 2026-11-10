@@ -6,11 +6,11 @@
   const t = (key, args) => i18n.t(key, args);
   const esc = value => String(value).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
   const allExercises = lessons.flatMap(lesson => lesson.exercises.map(exercise => ({ ...exercise, lesson })));
-  const defaults = { lang: 'es', size: 'regular', contrast: false, names: false, sounds: false };
+  const defaults = { lang: 'es', names: false, sounds: false };
   const storedSettings = storage.read('settings', {});
   let settings = { ...defaults };
   if (storedSettings && typeof storedSettings === 'object') {
-    settings = { lang: storedSettings.lang === 'en' ? 'en' : 'es', size: storedSettings.size === 'large' ? 'large' : 'regular', contrast: storedSettings.contrast === true, names: storedSettings.names === true, sounds: storedSettings.sounds === true };
+    settings = { lang: storedSettings.lang === 'en' ? 'en' : 'es', names: storedSettings.names === true, sounds: storedSettings.sounds === true };
   }
   const queryLang = new URLSearchParams(location.search).get('lang');
   if (['es', 'en'].includes(queryLang)) settings.lang = queryLang;
@@ -24,6 +24,16 @@
      without this the header control could disagree with the page after a
      first visit resolved the language from ?lang= or from the browser. */
   try { localStorage.setItem('enroca:locale', settings.lang); } catch (_) {}
+  /* The shared picker stores the new language, then calls this hook. Apply it
+     in place (no reload, no extra history entry) and keep ?lang= in step, so a
+     reload opens the language the visitor picked. */
+  window.LocalePicker = window.LocalePicker || {};
+  window.LocalePicker.onChange = function (locale) {
+    if (!['es', 'en'].includes(locale) || settings.lang === locale) return;
+    settings.lang = locale;
+    const url = new URL(location.href); url.searchParams.set('lang', locale); history.replaceState(null, '', url);
+    save('settings', settings); render(false);
+  };
   let progress = { lessons: [], exercises: {}, minigames: {} };
   const savedProgress = storage.read('progress', null);
   if (savedProgress && typeof savedProgress === 'object') {
@@ -76,8 +86,6 @@
     i18n.set(settings.lang);
     sound.enabled = settings.sounds;
     if (!settings.sounds) sound.stop();
-    document.documentElement.classList.toggle('large-text', settings.size === 'large');
-    document.documentElement.classList.toggle('high-contrast', settings.contrast);
     document.documentElement.classList.toggle('piece-names', settings.names);
     document.title = t('app.title');
     document.querySelector('meta[name="description"]').content = t('app.description');
@@ -390,7 +398,7 @@
     } else commitMove(moves[0]);
   }
   function renderSettings() {
-    return `${breadcrumb()}<section class="settings-panel"><div class="page-intro"><h1>${esc(t('settings.title'))}</h1></div><label class="setting"><span>${esc(t('settings.language'))}</span><select data-setting="lang"><option value="es" ${settings.lang === 'es' ? 'selected' : ''}>Español</option><option value="en" ${settings.lang === 'en' ? 'selected' : ''}>English</option></select></label><label class="setting"><span>${esc(t('settings.text'))}</span><select data-setting="size"><option value="regular" ${settings.size === 'regular' ? 'selected' : ''}>${esc(t('settings.regular'))}</option><option value="large" ${settings.size === 'large' ? 'selected' : ''}>${esc(t('settings.large'))}</option></select></label><label class="setting"><span>${esc(t('settings.contrast'))}</span><input type="checkbox" data-setting="contrast" ${settings.contrast ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.pieceNames'))}</span><input type="checkbox" data-setting="names" ${settings.names ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.sounds'))}</span><input type="checkbox" data-setting="sounds" ${settings.sounds ? 'checked' : ''}></label><div class="settings-data"><h2>${esc(t('settings.data'))}</h2>${button('settings.delete', 'delete-data', 'secondary')}</div></section>`;
+    return `${breadcrumb()}<section class="settings-panel"><div class="page-intro"><h1>${esc(t('settings.title'))}</h1></div><label class="setting"><span>${esc(t('settings.pieceNames'))}</span><input type="checkbox" data-setting="names" ${settings.names ? 'checked' : ''}></label><label class="setting"><span>${esc(t('settings.sounds'))}</span><input type="checkbox" data-setting="sounds" ${settings.sounds ? 'checked' : ''}></label><div class="settings-data"><h2>${esc(t('settings.data'))}</h2>${button('settings.delete', 'delete-data', 'secondary')}</div></section>`;
   }
   function renderAbout() {
     achievements.sync();
@@ -521,16 +529,6 @@
     }
     const control = event.target.closest('[data-setting]'); if (!control) return;
     settings[control.dataset.setting] = control.type === 'checkbox' ? control.checked : control.value;
-    if (control.dataset.setting === 'lang') {
-      const url = new URL(location.href); url.searchParams.set('lang', settings.lang); history.replaceState(null, '', url);
-      /* The shared picker's own key is a MIRROR of this one: it reads it to
-         decide which language to show on load, and it only ever writes it
-         when the change comes from its dropdown. Changing the language here
-         instead would leave the mirror stale, so the header dropdown would
-         offer the language the visitor just switched away from. The app's
-         `enroca:settings.lang` stays the single source of truth. */
-      try { localStorage.setItem('enroca:locale', settings.lang); } catch (_) {}
-    }
     save('settings', settings); render(false); if (settings.sounds && control.dataset.setting === 'sounds') sound.play('success'); main.querySelector(`[data-setting="${control.dataset.setting}"]`)?.focus();
   });
   document.addEventListener('submit', event => {

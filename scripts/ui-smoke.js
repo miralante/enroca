@@ -581,13 +581,16 @@ async function exerciseNativeSettings(browser, baseUrl) {
       await downloadPromise;
     } else if (APP === 'ludia') {
       await page.goto(baseUrl + '/#settings', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
-      await page.locator('[data-setting="size"]').waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
-      await page.locator('[data-setting="size"]').selectOption('large');
-      assert.ok(await page.locator('html').evaluate(node => node.classList.contains('large-text')),
-        'El tamaño grande debe activar la clase de tipografía de Ludia');
-      await page.locator('[data-setting="contrast"]').check();
-      assert.ok(await page.locator('html').evaluate(node => node.classList.contains('high-contrast')),
-        'El contraste debe activar la paleta propia de Ludia');
+      await page.locator('.locale-settings-trigger').waitFor({ state: 'visible', timeout: NAV_TIMEOUT });
+      await page.locator('.locale-settings-trigger').click();
+      const gearDrawer = page.locator('#accessibility-settings');
+      await gearDrawer.locator('[data-settings-size="large"]').click();
+      assert.strictEqual(await page.locator('html').getAttribute('data-a11y-text'), 'large',
+        'El tamaño grande del engranaje debe aplicarse a Ludia');
+      await gearDrawer.locator('[data-settings-contrast]').check();
+      assert.strictEqual(await page.locator('html').getAttribute('data-theme'), 'contrast',
+        'El contraste del engranaje debe activar la paleta de Ludia');
+      await gearDrawer.locator('[data-settings-close]').click();
       await page.locator('[data-setting="names"]').check();
       assert.ok(await page.locator('html').evaluate(node => node.classList.contains('piece-names')),
         'Mostrar nombres debe activar las etiquetas de piezas');

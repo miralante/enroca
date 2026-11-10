@@ -14,5 +14,5 @@ Tetris starts step by step. Automatic falling is optional and has a pause button
 In two-person dominoes, pass the device before showing your tiles.
 
 Chess keeps its topics, exercises, challenges and matches.
-Settings includes language, text size, contrast, piece names and sounds.
+Settings holds piece names and sounds. The gear (⚙️) holds language, text size and contrast.
 Sounds start off. Data stays in this browser.

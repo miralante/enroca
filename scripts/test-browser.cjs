@@ -6,6 +6,23 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright')
 const lessons = require('../data.js');
 const C = require('../chess.js');
 const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
+// Language, text size and contrast now live in the gear drawer (the shared
+// accessibility component), so the browser checks drive it from there.
+async function setGear(page, { lang, size, contrast } = {}) {
+  await page.locator('.locale-settings-trigger').click();
+  const drawer = page.locator('#accessibility-settings');
+  if (lang) {
+    await drawer.locator('.locale-picker-btn').click();
+    await drawer.locator('.locale-picker-panel [data-locale="' + lang + '"]').click();
+  }
+  if (size) await drawer.locator('[data-settings-size="' + size + '"]').click();
+  if (contrast !== undefined) {
+    const box = drawer.locator('[data-settings-contrast]');
+    if (contrast) await box.check(); else await box.uncheck();
+  }
+  await drawer.locator('[data-settings-close]').click();
+}
+
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 960 }, locale: 'es-ES' });
@@ -115,9 +132,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
     console.log('✓ Explicit promotion, cancel and underpromotion');
     // Responsive checks include both languages and larger text on key screens.
     for (const lang of ['es', 'en']) {
-      await go('settings'); await page.locator('[data-setting="lang"]').selectOption(lang);
-      await page.locator('[data-setting="size"]').selectOption('large');
-      await page.locator('[data-setting="contrast"]').check();
+      await go('settings'); await setGear(page, { lang, size: 'large', contrast: true });
       await page.locator('[data-setting="names"]').check();
       for (const width of [320, 375, 768, 1280]) {
         await page.setViewportSize({ width, height: 900 });
@@ -132,8 +147,7 @@ const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
       }
     }
     console.log('✓ ES/EN + large text + contrast + names at 320/375/768/1280px');
-    await go('settings'); await page.locator('[data-setting="lang"]').selectOption('es');
-    await page.locator('[data-setting="size"]').selectOption('regular'); await page.locator('[data-setting="contrast"]').uncheck(); await page.locator('[data-setting="names"]').uncheck();
+    await go('settings'); await setGear(page, { lang: 'es', size: 'regular', contrast: false }); await page.locator('[data-setting="names"]').uncheck();
     if (captures) { await go('game'); await page.screenshot({ path: path.join(captures, 'game-desktop.png'), fullPage: true }); await page.setViewportSize({ width:375,height:900 }); await go('home'); await page.screenshot({ path: path.join(captures,'home-mobile.png'),fullPage:true }); }
     await page.evaluate(() => localStorage.setItem('another-app:keep', 'yes'));
     await go('settings'); await act('delete-data').click(); await act('close-dialog').click();

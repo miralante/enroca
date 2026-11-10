@@ -120,7 +120,7 @@ La cabecera principal sigue el modelo de Memofun: icono de 44px (32px por
 debajo de 650px), título Nunito de 28px (22px en móvil), atribución a la suite
 y controles alineados. Usa un margen interior vertical de 8px y separa las
 filas 6px. El texto secundario tiene peso normal y el contador de estrellas
-es compacto. Los botones de idioma de la cabecera muestran nombres completos en escritorio
+es compacto. El desplegable de idioma, dentro del cajón del engranaje, muestra nombres completos en escritorio
 y ES/EN en móvil, con nombres accesibles completos. Teclatlon conserva sus
 controles de teclado y ajustes; Enroca conserva navegación y ajustes. Estos
 estilos de cabecera no cambian los controles de las actividades.
