@@ -2,7 +2,7 @@
    registration scope. The server copy wins while online; the cache answers
    only when the network is unreachable. */
 'use strict';
-var VERSION = 'ludia-v28';
+var VERSION = 'ludia-v30';
 var FILES = [
   "./",
   "./app.js",
@@ -31,6 +31,11 @@ var FILES = [
   "./assets/img/icon-192.png",
   "./assets/img/icon-512.png",
   "./manifest.json",
+  "./about/",
+  "./about/styles.css",
+  "./about/about.js",
+  "./about/strings.es.js",
+  "./about/strings.en.js",
   "./404.html",
   "./ludia.js",
   "./assets/css/ludia.css",

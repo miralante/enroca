@@ -1,5 +1,6 @@
 /* Enroca — en; Spanish is the editorial source of truth. */
 window.App.i18n.register('en', {
+  "about.link": "About the app",
   "ludia.games": "Games",
   "ludia.chess": "Chess",
   "ludia.rules": "Rules",
