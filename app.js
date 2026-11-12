@@ -120,7 +120,6 @@
       case 'game': main.innerHTML = game ? renderGame() : renderPlay(); scheduleAI(); break;
       case 'settings': main.innerHTML = renderSettings(); break;
       case 'privacy': main.innerHTML = renderPrivacy(); break;
-      case 'about': main.innerHTML = renderAbout(); break;
       default: main.innerHTML = renderHome();
     }
     applySettings();
