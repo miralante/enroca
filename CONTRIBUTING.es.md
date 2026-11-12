@@ -1,4 +1,4 @@
-# Contribuir a Enroca
+# Contribuir a Ludia
 
 Gracias por ayudar a mejorar las lecciones y el juego. Describe un cambio concreto
 y un ejemplo. Mantén la lectura fácil y el mismo contenido en español e inglés.

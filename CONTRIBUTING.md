@@ -1,4 +1,4 @@
-# Contributing to Enroca
+# Contributing to Ludia
 
 Describe a concrete change and example. Keep text easy to read and mirror all
 content in Spanish and English. Do not add dependencies or third-party calls.

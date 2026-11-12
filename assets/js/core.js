@@ -1,7 +1,21 @@
 /* Small independent suite core: translation, guarded local storage, optional game sounds. */
 (function () {
   'use strict';
-  const STORAGE_PREFIX = 'enroca:';
+  const STORAGE_PREFIX = 'ludia:';
+  /* The app was called Enroca until 2026: its saved data sat under 'enroca:'. Move
+     those keys to the current prefix once, then remove the old ones. A key that
+     already exists under the new prefix wins, so a visit on the new version is
+     never overwritten by old data. Only 'enroca:' keys are touched. */
+  (function migrateLegacyKeys() {
+    const LEGACY = 'enroca:';
+    try {
+      Object.keys(localStorage).filter(k => k.startsWith(LEGACY)).forEach(old => {
+        const key = STORAGE_PREFIX + old.slice(LEGACY.length);
+        if (localStorage.getItem(key) === null) localStorage.setItem(key, localStorage.getItem(old));
+        localStorage.removeItem(old);
+      });
+    } catch (_) { /* storage unavailable: nothing to move */ }
+  })();
   const dictionaries = {};
   let locale = 'es';
   const storage = {

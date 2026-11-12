@@ -1,4 +1,4 @@
-# Acompañar con Enroca
+# Acompañar con Ludia
 
 Acordad una sola idea para hoy. Se puede usar un tablero físico junto a la pantalla.
 

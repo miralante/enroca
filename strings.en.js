@@ -1,6 +1,7 @@
-/* Enroca — en; Spanish is the editorial source of truth. */
+/* Ludia — en; Spanish is the editorial source of truth. */
 window.App.i18n.register('en', {
   "about.link": "About the app",
+  "core.chrome.appName": "Ludia",
   "ludia.games": "Games",
   "ludia.chess": "Chess",
   "ludia.rules": "Rules",

@@ -17,9 +17,7 @@
 <body>
   <div class="container about">
     <header class="header-about">
-      <div class="suite-controls">
-        <div id="locale-picker"></div>
-      </div>
+      <div class="suite-controls" data-suite-header data-suite-brand="off"></div>
       <img src="../assets/img/icon.svg" alt="" width="80" height="80" class="logo-about">
       <h1>Ludia</h1>
       <p class="tagline" data-i18n="about.tagline">Juegos adaptados, a tu ritmo.</p>
@@ -228,8 +226,10 @@
     </main>
 
     <footer class="pie-about">
-      <a class="btn btn-secondary" href="../" data-i18n="about.footerGames">Ir a los juegos</a>
-      <a class="btn btn-secondary" href="../#privacy" data-i18n="about.footerPrivacy">Privacidad</a>
+      <div data-suite-footer data-suite-base="../" data-suite-portal="https://apptonomia.uk/"></div>
+      <div class="footer-extra">
+        <a class="btn btn-secondary" href="../" data-i18n="about.footerGames">Ir a los juegos</a>
+      </div>
     </footer>
   </div>
 
@@ -237,6 +237,7 @@
   <script src="strings.es.js" defer></script>
   <script src="strings.en.js" defer></script>
   <script src="about.js" defer></script>
+<script src="../assets/js/suite-chrome.js?v=1" defer></script>
   <script src="../assets/js/locale-picker-config.js"></script>
   <script src="../assets/js/locale-picker.js" defer></script>
   <script src="../assets/js/sw-register.js"></script>

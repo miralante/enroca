@@ -22,10 +22,10 @@ https://ludia.apptonomia.uk/ (live since 2026-09-12).
 
 ## Cache contract
 
-`sw.js` VERSION starts at `enroca-v1`. Bump it for every release changing a
+`sw.js` VERSION starts at `ludia-v1`. Bump it for every release changing a
 precache entry. Install fetches with cache:reload. A new worker waits for old tabs
-rather than replacing code during a game. Activation deletes only Enroca caches
-for its own scope. HTML/CSS/JS revalidate at the HTTP layer; only unchanged font
+rather than replacing code during a game. Activation deletes only older caches
+of its own scope (`ludia-v*`, and the legacy `enroca-v*`). HTML/CSS/JS revalidate at the HTTP layer; only unchanged font
 assets are immutable. No long-lived immutable application URLs without versioning.
 
 ## Local use
@@ -44,7 +44,7 @@ are excluded by `.assetsignore` and return 404 on the published origin.
 Published-origin Chromium QA passed: all 29 tasks in continuous topics, 12 mini-games, local/computer
 games, explicit promotion, keyboard, ES/EN, 320/375/768/1280 px, offline use and
 local data reset, silence by default and optional game sounds. Asset MIME types and
-exclusion of Git, local tooling and temporary QA files were checked. Current cache: `enroca-v4`.
+exclusion of Git, local tooling and temporary QA files were checked. Last cache published under the old name: `enroca-v4`.
 
 On Windows, if Node cannot validate a certificate trusted by the operating system,
 run Wrangler with `$env:NODE_USE_SYSTEM_CA='1'` (supported by the tested Node 24).

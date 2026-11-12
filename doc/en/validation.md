@@ -1,4 +1,4 @@
-# Enroca v2 validation
+# Ludia v2 validation
 
 Local review: 12 September 2026.
 
@@ -20,7 +20,7 @@ Local review: 12 September 2026.
 - Offline topics, challenges and matches after first visit. No external runtime
   requests or execution errors in browser tests.
 - Previous progress retained for current IDs; two former board tasks are replaced
-  by three location tasks. Deletion touches only `enroca:` data.
+  by three location tasks. Deletion touches only `ludia:` data.
 - Blocked/corrupt storage and direct `index.html` opening checked.
 - Metadata and llms.txt generators current. Cache prepared as `enroca-v2`.
 
@@ -44,7 +44,7 @@ all 29 tasks, 12 challenges, screen sizes and offline use.
 
 ## Ludia verification (local)
 
-The Ludia conversion is verified locally, separately from the historical Enroca
+The Ludia conversion is verified locally, separately from the historical chess
 publication above. All 58 new rules/examples and 58 exercises pass browser tests.
 Complete matches, undo, resuming, Tetris pause, domino handover, checkers keyboard
 and list controls are covered. Active boards and course screens fit 320, 375, 768

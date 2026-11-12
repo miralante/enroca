@@ -2,7 +2,7 @@
    registration scope. The server copy wins while online; the cache answers
    only when the network is unreachable. */
 'use strict';
-var VERSION = 'ludia-v30';
+var VERSION = 'ludia-v38';
 var FILES = [
   "./",
   "./app.js",
@@ -15,11 +15,12 @@ var FILES = [
   "./assets/js/locale-picker.js",
   /* External scripts that used to be inline <script> blocks. The CSP is
      `script-src self`, so they must stay external: locale-picker-config
-     (the enroca:locale key, #settings link and high-contrast class) and
+     (the ludia:locale key, #settings link and high-contrast class) and
      sw-register (the PWA). */
   "./assets/js/locale-picker-config.js",
   "./assets/js/sw-register.js",
   "./assets/js/achievements.js",
+  "./assets/js/suite-chrome.js",
   "./assets/css/styles.css",
   "./assets/css/locale-picker.css",
   "./assets/fonts/atkinson-hyperlegible-400.woff2",

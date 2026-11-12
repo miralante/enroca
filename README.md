@@ -64,7 +64,7 @@ checkers and chess), each with a rules section, interactive
 exercises that rehearse the rules step by step, and a full local
 match against the built-in engine (or another person on the same
 device). The chess curriculum and engine are preserved from the
-original Enroca project; the public name is **Ludia** for the
+original chess project; the public name is **Ludia** for the
 whole catalogue.
 
 Ludia ships as a static, dependency-free web app and a
@@ -89,8 +89,8 @@ Ludia is built to:
 - 🌐 **Stay bilingual end-to-end** — Spanish is the default
   and source of truth; English keeps parity in every string.
 - 🔒 **Keep progress on the user's device only** — every saved
-  game lives in `localStorage` under the `enroca:` prefix
-  (kept Enroca-compatible on purpose, see `CLAUDE.md`); nothing
+  game lives in `localStorage` under the `ludia:` prefix
+  (kept for continuity, see `CLAUDE.md`); nothing
   is ever uploaded.
 - 📦 **Work offline as a PWA** — install, close the laptop,
   keep playing.

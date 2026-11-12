@@ -2,11 +2,11 @@
 
 ## 1. Decisiones
 
-Ludia convierte Enroca en una plataforma de ocho juegos adaptados. El objetivo
+Ludia convierte el proyecto de ajedrez original en una plataforma de ocho juegos adaptados. El objetivo
 interno sigue siendo apoyar la participación de personas con discapacidad
 intelectual mediante reglas visuales, acciones sencillas y juego acompañado.
 Nombre ES/EN: Ludia. El proyecto y el alojamiento conservan los identificadores
-de Enroca para mantener la continuidad. PWA estática, independiente, sin build
+anteriores para mantener la continuidad. PWA estática, independiente, sin build
 ni dependencias externas. Español como fuente editorial y espejo inglés completo.
 
 ## 2. Recorrido

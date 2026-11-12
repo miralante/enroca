@@ -30,7 +30,7 @@ Tetris, sudoku, domino or checkers files as examples. No build step is involved.
    before game content, shared views before game views, all before `ludia.js`.
    Add a catalogue illustration in `illustration` in `ludia.js`; the catalogue,
    phase links, progress, settings and save slots then appear automatically.
-7. List every runtime file in `sw.js` and increment its `enroca-vN` version.
+7. List every runtime file in `sw.js` and increment its `ludia-vN` version.
    This cache prefix deliberately preserves the original app's upgrade path.
 8. Add meaningful engine and curriculum tests to `scripts/test-ludia.js` and UI
    actions to `scripts/test-ludia-browser.cjs`. Cover legal and illegal moves,

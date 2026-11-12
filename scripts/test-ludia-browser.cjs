@@ -4,7 +4,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE_PATH||'playwright');
 const G=require('../games/shared.js');
 for(const file of ['tic-tac-toe','connect-four','battleship','sudoku','tetris','domino','checkers'])require('../games/'+file+'.js');
 for(const file of ['curriculum','sudoku-content','tetris-content','domino-content','checkers-content'])require('../games/'+file+'.js');
-const url=process.env.ENROCA_TEST_URL||'http://127.0.0.1:8099/';
+const url=process.env.LUDIA_TEST_URL||'http://127.0.0.1:8099/';
 // Language, text size and contrast now live in the gear drawer (the shared
 // accessibility component), so the browser checks drive it from there.
 async function setGear(page, { lang, size, contrast } = {}) {
@@ -28,7 +28,7 @@ async function setGear(page, { lang, size, contrast } = {}) {
  const go=async hash=>{await page.goto(url+'#'+hash,{waitUntil:'domcontentloaded'});await page.locator('main h1').waitFor();};
  const act=name=>page.locator('[data-ludia="'+name+'"]');
  const cell=at=>page.locator('[data-cell="'+at+'"]');
- const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('enroca:ludia-sessions')));
+ const stored=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('ludia:ludia-sessions')));
  const state=async()=>{await page.waitForFunction(()=>window.Ludia?.api.active);return page.evaluate(()=>Ludia.api.active.states.at(-1));};
  const courseAction=async(g,a)=>{
   if(g.id==='tic-tac-toe'||g.id==='battleship'){
@@ -58,7 +58,7 @@ async function setGear(page, { lang, size, contrast } = {}) {
     await page.locator('a.button[href="#ludia/'+g.id+'/exercises/'+(step+1)+'"]').click();
    }
    await page.locator('.ludia-complete').waitFor();
-   const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('enroca:ludia-progress')));
+   const progress=await page.evaluate(()=>JSON.parse(localStorage.getItem('ludia:ludia-progress')));
    assert.equal(progress[g.id].rules.length,g.lessons.length);assert.equal(progress[g.id].exercises.length,g.lessons.length);
    console.log('✓ '+g.id+': every rule, example and exercise completed');
   }
@@ -85,7 +85,7 @@ async function setGear(page, { lang, size, contrast } = {}) {
   assert.deepEqual(errors,[]);
   // Render active matches, including their controls, during the layout matrix.
   const fresh={};for(const g of G.catalog)fresh[g.id]={version:1,seed:17,options:{partner:'computer',size:6,setup:'full',pace:'manual'},actions:g.id==='battleship'?[{type:'auto'},{type:'start'}]:[]};
-  await page.evaluate(fresh=>localStorage.setItem('enroca:ludia-sessions',JSON.stringify(fresh)),fresh);
+  await page.evaluate(fresh=>localStorage.setItem('ludia:ludia-sessions',JSON.stringify(fresh)),fresh);
   await page.reload();
   for(const lang of ['es','en']){
    await go('settings');await setGear(page, { lang, size: 'large', contrast: true });

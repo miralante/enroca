@@ -2,7 +2,7 @@
 
 ## Multi-game platform
 
-Ludia evolves this checkout from Enroca into an eight-game catalogue. `ludia.js`
+Ludia evolves this checkout from the original chess project into an eight-game catalogue. `ludia.js`
 handles `#home` and `#ludia/<id>[/rules|exercises|play|match][/step]`.
 The existing `app.js` keeps settings, privacy and the original chess routes.
 The chess overview links to its 14 topics, 29 exercises, 12 challenges and matches.
@@ -13,8 +13,8 @@ engines are pure, immutable and usable from Node. Each game supplies bilingual
 curriculum, an engine and a view adapter. See [adding games](adding-games.md).
 There are 58 new rules and 58 exercises in addition to the chess content.
 
-New keys use the existing prefix: `enroca:ludia-progress` and
-`enroca:ludia-sessions`. Successful exercises and viewed rules use stable IDs.
+New keys use the existing prefix: `ludia:ludia-progress` and
+`ludia:ludia-sessions`. Successful exercises and viewed rules use stable IDs.
 Each game has an independent save slot containing a version, options, seed and
 legal actions. Restore replays actions through the engine; it does not trust a
 serialized board. Malformed or illegal histories cannot resume. Data reset
@@ -73,11 +73,11 @@ hiding the tab or undoing. Returning resumes a pending turn.
 
 ## Data and sound
 
-Keys: `enroca:settings`, `enroca:progress`, `enroca:game`. Guarded storage access;
+Keys: `ludia:settings`, `ludia:progress`, `ludia:game`. Guarded storage access;
 invalid values are ignored. Progress IDs are checked against the catalog. Only
 successes are kept, never error counts or timing. Games restore by replaying legal
 moves from the initial position, never by trusting serialized boards. Undo removes
-one move or a human/opponent pair. Two-step deletion touches only Enroca keys.
+one move or a human/opponent pair. Two-step deletion touches only ludia: keys.
 Concurrent tabs are not synchronized: the last write wins. Use one tab per device
 for a consistent saved journey.
 
@@ -107,7 +107,7 @@ See CLOUDFLARE.md for deployment and caching.
 functions. Smaller boards show a subset of normal chess coordinates. Breadth-first
 search computes hints from the current state. Check challenges delegate to
 `chess.js`; movement training does not require kings. `app.js` keeps the transient
-state and undo history in memory. `enroca:progress.minigames` only saves completed
+state and undo history in memory. `ludia:progress.minigames` only saves completed
 goals. Loading accepts older progress without that field; reset also removes goals.
 `scripts/test-minigames.js` checks all 178 reachable positions remain solvable.
 `scripts/test-minigames-browser.cjs` covers all 12 challenges, navigation, lists,
@@ -120,5 +120,5 @@ a Nunito brand title at 28px (22px on mobile), suite attribution and aligned
 utility controls. It uses an 8px vertical inset and a 6px row gap. Supporting
 copy uses regular weight; any star counter stays compact. Header language buttons, where present,
 show full names on desktop and ES/EN on mobile, with full accessible names.
-Teclatlon keeps its keyboard controls and settings; Enroca keeps its navigation
+Teclatlon keeps its keyboard controls and settings; the chess routes keep their navigation
 and settings. These header styles do not change activity controls.

@@ -1,5 +1,5 @@
 {
-    "name": "enroca-ui-tests",
+    "name": "ludia-ui-tests",
     "private": true,
     "scripts": {
         "test:contrast": "powershell -ExecutionPolicy Bypass -File ..\\contrast\\check-contrast.ps1",

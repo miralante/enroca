@@ -21,8 +21,8 @@ const MIME_TYPES = {
   '.woff2': 'font/woff2', '.mp3': 'audio/mpeg', '.wav': 'audio/wav',
 };
 const EXTRA_HASH_ROUTES = {
-  enroca: ['#home', '#settings', '#learn', '#exercise/all', '#minigames',
-    '#play', '#privacy', '#about',
+  ludia: ['#home', '#settings', '#learn', '#exercise/all', '#minigames',
+    '#play', '#privacy',
     '#minigame/rook-flag', '#minigame/bishop-flag', '#minigame/knight-flag',
     '#minigame/pawn-flag', '#minigame/rook-path', '#minigame/bishop-path',
     '#minigame/knight-path', '#minigame/pawn-capture', '#minigame/king-step',
@@ -48,7 +48,6 @@ const EXTRA_HASH_ROUTES = {
   sinonimia: ['#/es/', '#/es/juego', '#/es/juego/palabra',
     '#/es/juego/frase', '#/en/', '#/en/juego'],
 };
-EXTRA_HASH_ROUTES.ludia = EXTRA_HASH_ROUTES.enroca;
 
 function walk(dir, relative) {
   const result = [];
@@ -355,7 +354,7 @@ async function exerciseFontSizeSettings(browser, baseUrl) {
     assert.notStrictEqual(fontSizeAfter, fontSizeBefore,
       'El tamaño elegido debe modificar el tamaño calculado del texto de la app');
     assert.strictEqual(await page.locator('[data-settings-size="large"]').getAttribute('aria-pressed'), 'true');
-    const settingsKey = APP === 'ludia' ? 'enroca:locale:accessibility' : APP + ':locale:accessibility';
+    const settingsKey = APP === 'ludia' ? 'ludia:locale:accessibility' : APP + ':locale:accessibility';
     const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)), settingsKey);
     assert.strictEqual(saved.textSize, 'large', 'El tamaño elegido debe guardarse');
 
@@ -607,7 +606,7 @@ async function exerciseNativeSettings(browser, baseUrl) {
       await page.locator('[data-action="delete-data"]').click();
       await page.locator('#confirm-action').click();
       assert.strictEqual(await page.evaluate(() =>
-        Object.keys(localStorage).some(key => key.startsWith('enroca:'))), false,
+        Object.keys(localStorage).some(key => key.startsWith('ludia:'))), false,
         'Borrar datos debe eliminar todo el progreso y las preferencias de Ludia');
     } else if (APP === 'sinonimia') {
       await page.goto(baseUrl + '/', { waitUntil: 'domcontentloaded', timeout: NAV_TIMEOUT });
@@ -803,7 +802,7 @@ async function exerciseSinonimia(page, route) {
   return actions ? 1 : 0;
 }
 
-async function exerciseEnroca(page, route) {
+async function exerciseLudia(page, route) {
   if (!route.includes('#')) return 0;
   let actions = 0;
   if (route.includes('/rules/')) {
@@ -879,7 +878,7 @@ async function exerciseFullFunctionality(page, route) {
     return exerciseMemofunStudy(page);
   }
   if (APP === 'sinonimia') return exerciseSinonimia(page, route);
-  if (APP === 'enroca' || APP === 'ludia') return exerciseEnroca(page, route);
+  if (APP === 'ludia') return exerciseLudia(page, route);
   if (APP === 'okeymoney') return exerciseOkeymoney(page);
   if (APP === 'calculia' || APP === 'routime') return exerciseActivityApp(page);
   return 0;

@@ -15,12 +15,14 @@
       min-height: 100vh;
       line-height: 1.5;
       display: flex;
-      align-items: center;
+      flex-direction: column;
+      align-items: stretch;
       justify-content: center;
       padding: 24px;
       -webkit-font-smoothing: antialiased;
     }
     .card {
+      margin-inline: auto;
       max-width: 480px;
       width: 100%;
       background: #FFFFFF;
@@ -49,13 +51,20 @@
       border-radius: 4px;
     }
   </style>
+<link rel="stylesheet" href="/assets/css/styles.css?v=1">
+  <link rel="stylesheet" href="/assets/css/locale-picker.css?v=ludia-v2bfghaa">
 </head>
 <body>
+  <div data-suite-header></div>
   <main class="card">
     <h1>Página no encontrada</h1>
     <p>La ruta que has visitado no existe. La página principal de Ludia sigue disponible.</p>
     <a href="/">Volver a Ludia</a>
   </main>
+  <footer data-suite-footer data-suite-base="/" data-suite-portal="https://apptonomia.uk/"></footer>
   <script src="assets/js/sw-register.js?v=1"></script>
+<script src="/assets/js/suite-chrome.js?v=1" defer></script>
+<script src="/assets/js/locale-picker-config.js?v=2ab"></script>
+<script src="/assets/js/locale-picker.js?v=ludia-v4aaa" defer></script>
 </body>
 </html>

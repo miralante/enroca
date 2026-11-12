@@ -1,4 +1,4 @@
-# Abrir Enroca
+# Abrir Ludia
 
 - Archivo: abre index.html. Todas las actividades funcionan sin servidor.
 - ZIP: descarga y extrae la carpeta completa; después abre index.html.

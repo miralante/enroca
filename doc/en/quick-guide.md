@@ -1,4 +1,4 @@
-# Open Enroca
+# Open Ludia
 
 - File: open index.html. All activities work without a server.
 - ZIP: download and extract the whole folder, then open index.html.

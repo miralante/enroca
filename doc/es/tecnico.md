@@ -2,7 +2,7 @@
 
 ## Plataforma de juegos
 
-Ludia transforma este proyecto de Enroca en un catálogo de ocho juegos.
+Ludia transforma este proyecto de ajedrez en un catálogo de ocho juegos.
 `ludia.js` atiende `#home` y `#ludia/<id>[/rules|exercises|play|match][/paso]`.
 `app.js` conserva ajustes, privacidad y las rutas originales del ajedrez.
 El ajedrez mantiene sus 14 temas, 29 ejercicios, 12 retos y partidas.
@@ -13,7 +13,7 @@ nuevos son puros, inmutables y utilizables desde Node. Cada juego aporta motor,
 contenido bilingüe y adaptador de interfaz. Véase [añadir juegos](anadir-juegos.md).
 Se añaden 58 reglas y 58 ejercicios al contenido del ajedrez.
 
-Las claves nuevas son `enroca:ludia-progress` y `enroca:ludia-sessions`.
+Las claves nuevas son `ludia:ludia-progress` y `ludia:ludia-sessions`.
 Guardan reglas vistas y ejercicios resueltos mediante identificadores estables.
 Cada juego tiene una partida independiente: versión, opciones, semilla y acciones
 legales. Al recuperar, el motor repite las acciones; no confía en un tablero
@@ -74,12 +74,12 @@ la pestaña o deshacer. Volver reanuda el turno pendiente.
 
 ## Datos y sonido
 
-Claves: `enroca:settings`, `enroca:progress`, `enroca:game`. Guardado con try/catch;
+Claves: `ludia:settings`, `ludia:progress`, `ludia:game`. Guardado con try/catch;
 contenido inválido se ignora. Progreso validado contra IDs del catálogo. Se conservan
 solo éxitos, nunca número de errores ni duración. La partida se reanuda reproduciendo
 jugadas legales desde la posición inicial, sin confiar en tableros serializados.
 Deshacer elimina una jugada o el par persona/rival. Borrado con dos pasos y solo
-bajo el prefijo de Enroca. Sin sincronización entre pestañas concurrentes: última
+bajo el prefijo ludia:. Sin sincronización entre pestañas concurrentes: última
 escritura gana; usar una pestaña por dispositivo para conservar un recorrido coherente.
 
 Web Audio genera tonos breves tras movimientos y metas. `sounds` es falso por defecto.
@@ -108,7 +108,7 @@ scripts/build-llms-txt.js. No es un build para ejecutar la app. Ver CLOUDFLARE.m
 coordenadas del ajedrez. La búsqueda en anchura calcula pistas desde el estado
 actual. Los retos de jaque delegan en `chess.js`; las tareas de movimiento no
 requieren reyes. `app.js` conserva el estado transitorio y el historial para
-deshacer en memoria. `enroca:progress.minigames` guarda solo metas resueltas.
+deshacer en memoria. `ludia:progress.minigames` guarda solo metas resueltas.
 La carga admite datos anteriores sin ese campo. El borrado elimina también esas
 metas. `scripts/test-minigames.js` comprueba las 178 posiciones alcanzables y
 que todas siguen siendo resolubles. `scripts/test-minigames-browser.cjs` prueba
@@ -122,5 +122,5 @@ y controles alineados. Usa un margen interior vertical de 8px y separa las
 filas 6px. El texto secundario tiene peso normal y el contador de estrellas
 es compacto. El desplegable de idioma, dentro del cajón del engranaje, muestra nombres completos en escritorio
 y ES/EN en móvil, con nombres accesibles completos. Teclatlon conserva sus
-controles de teclado y ajustes; Enroca conserva navegación y ajustes. Estos
+controles de teclado y ajustes; las rutas de ajedrez conservan navegación y ajustes. Estos
 estilos de cabecera no cambian los controles de las actividades.

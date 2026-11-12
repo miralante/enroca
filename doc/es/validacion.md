@@ -1,4 +1,4 @@
-# Validación de Enroca v2
+# Validación de Ludia v2
 
 Revisión local: 12 de septiembre de 2026.
 
@@ -20,7 +20,7 @@ Revisión local: 12 de septiembre de 2026.
 - Temas, retos y partidas sin conexión tras la primera visita. Sin peticiones externas
   ni errores de ejecución en las pruebas de navegador.
 - Progreso anterior conservado para IDs vigentes; los dos ejercicios antiguos de
-  tablero se sustituyen por tres localizaciones. Borrado exclusivo de `enroca:`.
+  tablero se sustituyen por tres localizaciones. Borrado exclusivo de `ludia:`.
 - Almacenamiento bloqueado o corrupto y apertura directa de `index.html` comprobados.
 - Generadores de metadatos y llms.txt actualizados. Caché preparada como `enroca-v2`.
 
@@ -45,7 +45,7 @@ incluidos los 29 ejercicios, 12 retos, tamaños de pantalla y uso sin conexión.
 ## Verificación de Ludia (local)
 
 La conversión a Ludia se verifica en local, por separado de la publicación
-histórica de Enroca descrita arriba. Pasan los 58 ejemplos/reglas y los 58
+histórica del proyecto de ajedrez descrita arriba. Pasan los 58 ejemplos/reglas y los 58
  ejercicios nuevos. Se prueban partidas completas, deshacer, retomar, pausa de
 Tetris, cambio de manos en Dominó y teclado/listas de Damas. Tableros activos y
 recorridos caben a 320, 375, 768 y 1365 píxeles en ambos idiomas con texto grande

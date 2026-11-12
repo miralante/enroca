@@ -31,7 +31,7 @@ ofrecen ejemplos completos. No hay paso de compilación.
    base antes del específico, vistas base antes de las específicas y todo antes
    de `ludia.js`. Añade una ilustración al catálogo en `illustration` de
    `ludia.js`. Las fases, progreso, ajustes y hueco de guardado aparecen automáticamente.
-7. Incluye cada archivo en `sw.js` e incrementa su versión `enroca-vN`.
+7. Incluye cada archivo en `sw.js` e incrementa su versión `ludia-vN`.
    Este prefijo conserva deliberadamente la actualización de la app original.
 8. Amplía `scripts/test-ludia.js` y `scripts/test-ludia-browser.cjs`. Prueba
    acciones legales e ilegales, finales completos, recuperación determinista,

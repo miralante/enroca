@@ -9,7 +9,7 @@
     var q = new URLSearchParams(location.search).get('lang');
     if (q === 'es' || q === 'en') return q;
     try {
-      var saved = localStorage.getItem('enroca:locale');
+      var saved = localStorage.getItem('ludia:locale');
       if (saved === 'es' || saved === 'en') return saved;
     } catch (_) {}
     var nav = String((navigator.languages && navigator.languages[0]) || navigator.language || '').toLowerCase().split(/[-_]/)[0];
@@ -27,7 +27,7 @@
   window.LocalePicker.onChange = function (lang) {
     if (lang !== 'es' && lang !== 'en') return;
     apply(lang);
-    try { localStorage.setItem('enroca:locale', lang); } catch (_) {}
+    try { localStorage.setItem('ludia:locale', lang); } catch (_) {}
     var url = new URL(location.href);
     url.searchParams.set('lang', lang);
     history.replaceState(null, '', url);

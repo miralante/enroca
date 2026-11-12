@@ -2,10 +2,10 @@
 
 ## 1. Decisions
 
-Ludia evolves Enroca into a platform of eight adapted games. The internal purpose
+Ludia evolves the original chess project into a platform of eight adapted games. The internal purpose
 remains supporting participation by people with intellectual disabilities through
 visual rules, straightforward actions and supported play. ES/EN name: Ludia.
-The checkout and hosting retain Enroca identifiers for continuity. Independent
+The checkout and hosting retain their earlier identifiers for continuity. Independent
 static PWA, no build or external runtime dependencies. Spanish editorial source
 with a complete English mirror.
 

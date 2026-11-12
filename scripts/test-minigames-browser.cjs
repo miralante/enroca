@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const M = require('../minigames.js'), C = require('../chess.js');
-const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
+const url = process.env.LUDIA_TEST_URL || 'http://127.0.0.1:8099/';
 // Language, text size and contrast now live in the gear drawer (the shared
 // accessibility component), so the browser checks drive it from there.
 async function setGear(page, { lang, size, contrast } = {}) {
@@ -31,10 +31,10 @@ async function setGear(page, { lang, size, contrast } = {}) {
   const act = name => page.locator('[data-action="' + name + '"]');
   const square = s => page.locator('[data-square="' + (typeof s === 'number' ? s : C.index(s)) + '"]');
   const solve = async id => { for (const move of M.solution(M.start(id))) { await square(move.from).click(); await square(move.to).click(); } };
-  const progress = () => page.evaluate(() => JSON.parse(localStorage.getItem('enroca:progress')));
+  const progress = () => page.evaluate(() => JSON.parse(localStorage.getItem('ludia:progress')));
   try {
     await go('learn');
-    await page.evaluate(() => localStorage.setItem('enroca:progress', JSON.stringify({ lessons: ['board'], exercises: { 'rook-0': 'independent' } })));
+    await page.evaluate(() => localStorage.setItem('ludia:progress', JSON.stringify({ lessons: ['board'], exercises: { 'rook-0': 'independent' } })));
     await page.reload();
     await page.locator('.mini-banner a').click();
     assert.equal(await page.locator('.mini-group').count(), 3);
@@ -97,7 +97,7 @@ async function setGear(page, { lang, size, contrast } = {}) {
     }
     await page.locator('[data-mini-next]').waitFor();
     console.log('✓ Hints after detours, lesson return and large list controls');
-    const captures = process.env.ENROCA_SCREENSHOTS;
+    const captures = process.env.LUDIA_SCREENSHOTS;
     if (captures) fs.mkdirSync(captures, { recursive: true });
     for (const lang of ['es', 'en']) {
       await go('settings');
@@ -128,7 +128,7 @@ async function setGear(page, { lang, size, contrast } = {}) {
     await context.setOffline(true); await go('minigame/rook-shield'); await solve('rook-shield');
     await page.locator('[data-mini-next]').waitFor(); await context.setOffline(false);
     await go('settings'); await act('delete-data').click(); await page.locator('#confirm-action').click();
-    assert.equal(await page.evaluate(() => localStorage.getItem('enroca:progress')), null);
+    assert.equal(await page.evaluate(() => localStorage.getItem('ludia:progress')), null);
     await go('minigames'); assert.equal(await page.locator('.lesson-state').filter({ hasText: /✓/ }).count(), 0);
     await go('minigame/not-a-challenge'); assert.equal(await page.locator('.mini-group').count(), 3);
     assert.deepEqual(errors, []); assert.deepEqual(external, []);

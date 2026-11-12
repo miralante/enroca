@@ -63,7 +63,7 @@ const sw = read('sw.js');
 const swEntries = sw.match(/var (?:ARCHIVOS|FILES) = \[([\s\S]*?)\];/);
 check(swEntries, 'Missing SW precache manifest');
 const entries = [...swEntries[1].matchAll(/"(.+?)"/g)].map(m => m[1]);
-check(/var VERSION = '(?:ludia|enroca)-v\d+'/.test(sw), 'Missing semantic SW version');
+check(/var VERSION = 'ludia-v\d+'/.test(sw), 'Missing semantic SW version');
 for (const entry of entries) check(entry === './' || exists(entry.slice(2)), 'Missing precache file ' + entry);
 /* The landing page is precached under "./", NOT "./index.html".
    Cloudflare answers "/index.html" with a 307 to "/", so precaching the

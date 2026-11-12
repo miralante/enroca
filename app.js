@@ -19,11 +19,11 @@
     settings.lang = primaryLanguage === 'es' ? 'es' : 'en';
   }
   /* Publish the resolved language to the shared picker's key. The picker
-     reads `enroca:locale` on load to decide which language to show, and it
+     reads `ludia:locale` on load to decide which language to show, and it
      only ever writes it when the change came from its own dropdown — so
      without this the header control could disagree with the page after a
      first visit resolved the language from ?lang= or from the browser. */
-  try { localStorage.setItem('enroca:locale', settings.lang); } catch (_) {}
+  try { localStorage.setItem('ludia:locale', settings.lang); } catch (_) {}
   /* The shared picker stores the new language, then calls this hook. Apply it
      in place (no reload, no extra history entry) and keep ?lang= in step, so a
      reload opens the language the visitor picked. */

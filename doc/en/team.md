@@ -1,4 +1,4 @@
-# Supporting someone with Enroca
+# Supporting someone with Ludia
 
 Agree on one idea for today. A physical board can sit alongside the screen.
 

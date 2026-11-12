@@ -5,7 +5,7 @@ const path = require('node:path'), fs = require('node:fs');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const lessons = require('../data.js');
 const C = require('../chess.js');
-const url = process.env.ENROCA_TEST_URL || 'http://127.0.0.1:8099/';
+const url = process.env.LUDIA_TEST_URL || 'http://127.0.0.1:8099/';
 // Language, text size and contrast now live in the gear drawer (the shared
 // accessibility component), so the browser checks drive it from there.
 async function setGear(page, { lang, size, contrast } = {}) {
@@ -31,7 +31,7 @@ async function setGear(page, { lang, size, contrast } = {}) {
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => { if (/^https?:/.test(request.url()) && new URL(request.url()).origin !== new URL(url).origin) external.push(request.url()); });
   const go = async hash => { await page.goto(url + '#' + hash); await page.locator('main h1').waitFor(); };
-  const stored = key => page.evaluate(key => JSON.parse(localStorage.getItem('enroca:' + key)), key);
+  const stored = key => page.evaluate(key => JSON.parse(localStorage.getItem('ludia:' + key)), key);
   const act = name => page.locator('[data-action="' + name + '"]');
   const clickSquare = s => page.locator('[data-square="' + C.index(s) + '"]').click();
   try {
@@ -40,7 +40,7 @@ async function setGear(page, { lang, size, contrast } = {}) {
     assert.equal(await page.locator('.lesson-card').count(), 14);
     assert.deepEqual(await page.locator('.top-nav a').allTextContents(), ['Juegos']);
     assert.deepEqual(await page.locator('.chess-navigation a').allTextContents(), ['Ajedrez','Reglas','Ejercicios','Retos','Jugar']);
-    const captures = process.env.ENROCA_SCREENSHOTS;
+    const captures = process.env.LUDIA_SCREENSHOTS;
     if (captures) { fs.mkdirSync(captures, { recursive: true }); await page.screenshot({ path: path.join(captures, 'home-desktop.png'), fullPage: true }); }
     await page.locator('a[href="#lesson/board/0"]').click();
     const heading = await page.locator('main h1').innerText();
@@ -111,19 +111,19 @@ async function setGear(page, { lang, size, contrast } = {}) {
     await act('close-dialog').click(); assert.equal((await stored('game')).moves.length, 2);
     await page.locator('#game-setup button[type="submit"]').click(); await page.locator('#confirm-action').click();
     await clickSquare('d2'); await clickSquare('d4');
-    await page.waitForFunction(() => JSON.parse(localStorage.getItem('enroca:game')).moves.length === 2);
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('ludia:game')).moves.length === 2);
     await act('undo').click(); assert.equal((await stored('game')).moves.length, 0);
     await clickSquare('e2'); await clickSquare('e4'); await act('undo').click();
     await page.waitForTimeout(850); assert.equal((await stored('game')).moves.length, 0);
     await clickSquare('e2'); await clickSquare('e4'); await page.locator('a[data-nav="home"]').click();
     await page.waitForTimeout(850); assert.equal((await stored('game')).moves.length, 1);
-    await go('game'); await page.waitForFunction(() => JSON.parse(localStorage.getItem('enroca:game')).moves.length === 2);
+    await go('game'); await page.waitForFunction(() => JSON.parse(localStorage.getItem('ludia:game')).moves.length === 2);
     console.log('✓ Computer move, pair undo, pending-turn cancellation and resume');
     // Restore only a legal history to exercise the promotion modal.
     const pairs = [['d2','d4'],['e8','f8'],['d4','d5'],['f8','g8'],['d5','d6'],['g8','f8'],['d6','e7'],['f8','g8']];
     let state = C.fromFEN(C.MINI); const moves = [];
     for (const [a, b] of pairs) { const m = { from: C.index(a), to: C.index(b) }; const result = C.play(state, m); assert.ok(result, a + b); state = result.state; moves.push(m); }
-    await page.evaluate(moves => localStorage.setItem('enroca:game', JSON.stringify({ mode:'mini', partner:'local', moves })), moves);
+    await page.evaluate(moves => localStorage.setItem('ludia:game', JSON.stringify({ mode:'mini', partner:'local', moves })), moves);
     await page.reload(); await page.locator('.board').waitFor(); await clickSquare('e7'); await clickSquare('e8');
     assert.equal(await page.locator('[data-promotion]').count(), 4);
     await page.keyboard.press('Escape'); assert.equal((await stored('game')).moves.length, 8);
@@ -158,11 +158,11 @@ async function setGear(page, { lang, size, contrast } = {}) {
     console.log('✓ Confirmed reset leaves other apps intact');
     await page.waitForFunction(async () => (await navigator.serviceWorker.getRegistration())?.active, null, { timeout: 15000 });
     await page.reload(); await page.waitForFunction(() => !!navigator.serviceWorker.controller);
-    const cacheCount = await page.evaluate(async () => { const name = (await caches.keys()).find(k => k.startsWith('enroca-v')); return (await (await caches.open(name)).keys()).length; });
+    const cacheCount = await page.evaluate(async () => { const name = (await caches.keys()).find(k => k.startsWith('ludia-v')); return (await (await caches.open(name)).keys()).length; });
     assert.ok(cacheCount >= 17);
     await context.setOffline(true); await go('lesson/rook/0'); await act('example').click();
     await go('play'); await page.locator('#game-setup button[type="submit"]').click(); await clickSquare('d2'); await clickSquare('d4');
-    await page.waitForFunction(() => JSON.parse(localStorage.getItem('enroca:game')).moves.length === 2);
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('ludia:game')).moves.length === 2);
     await context.setOffline(false);
     assert.equal(external.length, 0, 'External runtime requests: ' + external.join(', '));
     assert.deepEqual(errors, []);
@@ -174,7 +174,7 @@ async function setGear(page, { lang, size, contrast } = {}) {
     await blockedPage.locator('.board').waitFor(); assert.equal(await blockedPage.locator('#storage-notice').isVisible(), true);
     await blocked.close();
     const corrupt = await browser.newContext();
-    await corrupt.addInitScript(() => { localStorage.setItem('enroca:progress', '{broken'); localStorage.setItem('enroca:game', JSON.stringify({ mode:'full',partner:'local',moves:[{from:0,to:63}] })); });
+    await corrupt.addInitScript(() => { localStorage.setItem('ludia:progress', '{broken'); localStorage.setItem('ludia:game', JSON.stringify({ mode:'full',partner:'local',moves:[{from:0,to:63}] })); });
     const corruptPage = await corrupt.newPage(); await corruptPage.goto(url + '#play');
     assert.equal(await corruptPage.locator('a[href="#game"]').count(), 0); await corrupt.close();
     const direct = await browser.newPage(); await direct.goto('file:///' + path.resolve(__dirname, '../index.html').replace(/\\/g, '/'));

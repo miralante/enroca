@@ -2,7 +2,7 @@
 
 > 🌐 **Other languages:** [English](README.md)
 
-**Juegos a tu manera.** Una app independiente de [Apptonomia](https://apptonomia.uk/), evolución de Enroca.
+**Juegos a tu manera.** Una app independiente de [Apptonomia](https://apptonomia.uk/), evolución de un proyecto de ajedrez.
 
 Ocho juegos con reglas, ejercicios interactivos y partidas completas:
 
@@ -33,7 +33,7 @@ la primera visita servida.
 Abre [index.html](index.html), o ejecuta `node scripts/serve.js` y visita
 [la vista local](http://127.0.0.1:8099/). No hay instalación ni compilación.
 La carpeta, la configuración de alojamiento existente y las claves de guardado
-conservan sus identificadores de Enroca para mantener el progreso de ajedrez.
+conservan sus identificadores anteriores para mantener el progreso de ajedrez.
 La publicación se realiza por separado.
 
 ---
@@ -50,7 +50,7 @@ La publicación se realiza por separado.
 - 🔒 **Privacidad por defecto** — sin cuentas, sin cookies, sin
   analítica: el progreso y la partida guardada de cada juego
   viven en `localStorage` en el dispositivo del usuario, bajo
-  el prefijo `enroca:` (mantenido por compatibilidad con Enroca,
+  el prefijo `ludia:` (mantenido por continuidad,
   ver `CLAUDE.md`).
 - 📦 **PWA instalable** — se puede instalar en la pantalla de
   inicio y seguir jugando sin conexión después de la primera
@@ -59,9 +59,9 @@ La publicación se realiza por separado.
   grande, contraste alto, controles por teclado, pistas
   opcionales, deshacer y partidas guardadas; sonidos
   desactivados por defecto.
-- ♻️ **Identificadores heredados de Enroca a propósito** — la
+- ♻️ **Identificadores heredados a propósito** — la
   carpeta, la configuración de alojamiento y las claves de
-  guardado conservan sus nombres de Enroca para mantener el
+  guardado conservan sus nombres anteriores para mantener el
   progreso de ajedrez de las personas usuarias que ya jugaban.
 
 ---
@@ -74,7 +74,7 @@ dominó, damas y ajedrez), cada uno con su sección de reglas,
 ejercicios interactivos que las ensayan paso a paso y una partida
 local completa contra el motor integrado (o entre dos personas en
 el mismo dispositivo). El currículo y el motor de ajedrez se
-conservan del proyecto original Enroca; el nombre público es
+conservan del proyecto de ajedrez original; el nombre público es
 **Ludia** para todo el catálogo.
 
 Ludia se publica como web estática sin dependencias y como PWA
@@ -98,8 +98,8 @@ pública y la especificación no se separen.
 - 🌐 **Paridad bilingüe** — español por defecto y fuente de
   verdad; inglés con paridad en cada cadena.
 - 🔒 **Progreso solo en el dispositivo** — cada partida
-  guardada vive en `localStorage` bajo el prefijo `enroca:`
-  (mantenido por compatibilidad con Enroca, ver `CLAUDE.md`);
+  guardada vive en `localStorage` bajo el prefijo `ludia:`
+  (mantenido por continuidad, ver `CLAUDE.md`);
   nada se sube nunca.
 - 📦 **Funciona sin conexión como PWA** — instalar, cerrar el
   portátil, seguir jugando.
@@ -180,8 +180,8 @@ Para añadir un juego nuevo:
    (usa uno existente como plantilla).
 2. Registra el juego: añade su tarjeta a `index.html`, sus rutas
    al enrutador, y sus assets estáticos a `ARCHIVOS` en `sw.js`.
-3. Bumpea `VERSION` en `sw.js` (p. ej. `enroca-vN` →
-   `enroca-vN+1`).
+3. Bumpea `VERSION` en `sw.js` (p. ej. `ludia-vN` →
+   `ludia-vN+1`).
 4. Lee primero [`doc/es/anadir-juegos.md`](doc/es/anadir-juegos.md)
    — reglas de diseño, tono y requisitos de accesibilidad para
    nuestra audiencia.
