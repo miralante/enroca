@@ -1,6 +1,7 @@
 /* Ludia — Sobre la app (ES). Adaptado de la plantilla de Apptonomia. */
 window.App.i18n.register('es', {
   "about.pageTitle": "Ludia — Sobre la app",
+  "about.heading": "Sobre la app",
   "about.backToCover": "← Volver",
   "about.tagline": "Juegos adaptados, a tu ritmo.",
   "about.lead1": "Ludia es una ",
