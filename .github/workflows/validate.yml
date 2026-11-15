@@ -13,6 +13,7 @@ jobs:
         with:
           node-version: '22'
       - run: node scripts/check.js
+      - run: node scripts/checks/suite-markup.js
       - run: node scripts/check-version-bump.js
         env:
           DIFF_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
