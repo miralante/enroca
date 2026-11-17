@@ -316,6 +316,15 @@ header.site-header.suite-header { grid-template-columns: auto minmax(0, 1fr) aut
   padding-inline: 0;
 }
 
+/* The suite page container: the header, the body and the footer share one column.
+   Same contract as memofun/assets/css/base.css; the width is this app's own. */
+.container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(12px, 3vw, 40px);
+}
+
 /* The page progress bar, a component of its own like the header and the footer.
    The script moves each page bar into a row (.suite-chrome-progress) right under
    the header, at the top of the page body: the row takes the body's width, so the
