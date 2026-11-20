@@ -8,3 +8,5 @@ scripts/.cache/
 .tmp*
 .env*
 .dev.vars*
+# Notas/workspace personal del mantenedor (backlog, tarjetas, capturas)
+.dev/
