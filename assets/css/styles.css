@@ -214,16 +214,21 @@ header.site-header.suite-header { grid-template-columns: auto minmax(0, 1fr) aut
 .suite-chrome-activity {
   display: flex;
   flex: 1 1 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 8px 12px;
   min-width: 0;
-  text-align: center;
+  text-align: start;
 }
+
+.suite-chrome-activity .back-link { flex: none; }
 
 .suite-chrome-activity h1 {
   margin: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: start;
   font-size: var(--texto-grande, 1.5rem);
   line-height: 1.2;
   color: var(--accent, var(--acento, inherit));
@@ -293,8 +298,10 @@ header.site-header.suite-header { grid-template-columns: auto minmax(0, 1fr) aut
   .suite-chrome-header { padding-block: 2px; }
   .suite-chrome-name { font-size: 1rem; }
   .suite-chrome-activity h1 { font-size: 1.25rem; }
-  /* Phones: brand and controls share the first row; the activity block (back link,
-     title) takes a full row under them, so the title never gets a sliver of width. */
+  /* Phones: the brand gives up width (its byline wraps) so the stars and the gear keep
+     the first row. The activity block takes the row below: the back link keeps its
+     size and the title text wraps inside the space that is left beside it. */
+  .suite-chrome-brand { flex: 1 1 0; }
   .suite-chrome-controls { margin-inline-start: auto; order: 1; }
   .suite-chrome-activity { flex: 1 0 100%; order: 2; }
 }
