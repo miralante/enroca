@@ -208,9 +208,10 @@ header.site-header.suite-header { grid-template-columns: auto minmax(0, 1fr) aut
   font-weight: 700;
 }
 
-/* The subpage's activity block: centred between the brand and the controls. It takes
-   the room left over (flex-basis 0), so the stars and the gear keep the first row;
-   a long title wraps inside its own space instead of pushing the controls down. */
+/* The subpage's activity block: the back link and the title stay on one row, the title
+   starting right after the back link (the same x on every subpage). It takes the room
+   left over (flex-basis 0), so the stars and the gear keep the first row; a long title
+   wraps inside its own space instead of dropping under the back link. */
 .suite-chrome-activity {
   display: flex;
   flex: 1 1 0;
@@ -224,6 +225,8 @@ header.site-header.suite-header { grid-template-columns: auto minmax(0, 1fr) aut
 
 .suite-chrome-activity .back-link { flex: none; }
 
+/* An activity icon sits inside the title, before the text, so every title starts at the same x. */
+.suite-chrome-activity h1 .activity-icon { display: inline-block; width: 1.4em; height: 1.4em; vertical-align: -0.25em; margin-inline-end: 0.2em; }
 .suite-chrome-activity h1 {
   margin: 0;
   flex: 1 1 0;
@@ -303,7 +306,9 @@ header.site-header.suite-header { grid-template-columns: auto minmax(0, 1fr) aut
      size and the title text wraps inside the space that is left beside it. */
   .suite-chrome-brand { flex: 1 1 0; }
   .suite-chrome-controls { margin-inline-start: auto; order: 1; }
-  .suite-chrome-activity { flex: 1 0 100%; order: 2; }
+  .suite-chrome-activity { flex: 1 0 100%; order: 2; flex-wrap: nowrap; justify-content: flex-start; }
+  .suite-chrome-activity .back-link { flex: none; }
+  .suite-chrome-activity h1 { flex: 1 1 0; min-width: 0; text-align: start; }
 }
 
 /* The body: the page's content region, between the header and the footer.
@@ -326,15 +331,6 @@ header.site-header.suite-header { grid-template-columns: auto minmax(0, 1fr) aut
 
 :where(.container) > .suite-body {
   padding-inline: 0;
-}
-
-/* The suite page container: the header, the body and the footer share one column.
-   Same contract as memofun/assets/css/base.css; the width is this app's own. */
-.container {
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 clamp(12px, 3vw, 40px);
 }
 
 /* The page progress bar, a component of its own like the header and the footer.
