@@ -2,6 +2,8 @@
     "name": "ludia-ui-tests",
     "private": true,
     "scripts": {
+        "lint": "node scripts/check.js",
+        "lint:markup": "node scripts/checks/suite-markup.js",
         "test:contrast": "powershell -ExecutionPolicy Bypass -File ..\\contrast\\check-contrast.ps1",
         "test:ui": "node scripts/ui-smoke.js",
         "test:sw": "node scripts/smoke-sw.js",

@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node scripts/check.js
+      - run: npm run lint
       - run: node scripts/checks/suite-markup.js
       - run: node scripts/check-version-bump.js
         env:
